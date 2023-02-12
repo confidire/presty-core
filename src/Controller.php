@@ -13,21 +13,18 @@
 
 namespace presty;
 
-use startphp\Facade\Request;
+use presty\Facade\Request;
 
 class Controller
 {
 
-    protected $version, $view, $template,$request;
+    protected $view, $template,$request, $viewQueue;
 
     function __construct ()
     {
-        global $version, $viewQueue, $template;
-        $this->version = $version = VERSION;
-        $this->view = getClass("view");
-        $this->viewQueue = $viewQueue;
-        $this->template = $template;
-        $this->request = new Request;
+        $this->viewQueue = app()->make("viewQueue");
+        $this->view = $this->viewQueue->getMainView();
+        $this->request = app()->make("request");
     }
 
     public function global ($vars)

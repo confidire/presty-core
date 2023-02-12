@@ -14,6 +14,7 @@
 namespace presty;
 
 use PDO;
+use presty\exception\database\DatabaseException;
 
 class Database
 {
@@ -66,8 +67,7 @@ class Database
 
     function __construct ($dbtype = "mysql", $dbhost = "localhost", $dbname = "", $dbuser = "", $dbpass = "", $dbport = 3306, $dbprefix = "", $dbfile = "", $dbtable = "")
     {
-        global $config;
-        global $hasBeenRun;
+        app()->setArrayVar("hasBeenRun","database"," - Database_Init");
         $this->dbtype = $dbtype;
         $this->dbhost = $dbhost;
         $this->dbname = $dbname;
@@ -77,7 +77,7 @@ class Database
         $this->dbprefix = $dbprefix;
         $this->dbfile = $dbfile;
         $this->dbtable = $dbtable;
-        if ($config['database_auto_load']) {
+        if (get_config('database_auto_load',false)) {
             $this->init ();
         }
         return $this;
@@ -91,7 +91,7 @@ class Database
             $this->db = $dbh = new PDO($this->dsn, $this->dbuser, $this->dbpass, [PDO::ATTR_PERSISTENT => true]); //初始化一个PDO对象
             $this->db->setAttribute (PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);                                  //设置错误模式
         } catch (PDOException $e) {
-            \ThrowError::throw("Database Connect Error: " . $e->getMessage (), __FILE__, __LINE__, "EC100003");
+            new DatabaseException("Database Connect Error: " . $e->getMessage (),__FILE__,__LINE__);
         }
         $sth = $this->db->prepare ("SELECT * FROM " . $this->dbtable);
         $sth->execute ();
@@ -142,7 +142,7 @@ class Database
             $this->primaryKey = $key;
             return $this;
         } else {
-            \ThrowError::throw(__FILE__, __LINE__, "EC100004", $key);
+            new DatabaseException("指定的主键字段".$key."不存在",__FILE__,__LINE__);
             return false;
         }
     }
@@ -159,7 +159,7 @@ class Database
             $this->dbtable = $dbtable;
             return ($this);
         } else {
-            \ThrowError::throw(__FILE__, __LINE__, "EC100005", $this->dbtable);
+            new DatabaseException("指定的数据表".$this->dbtable."不存在",__FILE__,__LINE__);
         }
     }
 

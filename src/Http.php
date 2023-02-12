@@ -12,6 +12,8 @@
  */
 
 namespace presty;
+use presty\exception\RunTimeException;
+use Symfony\Component\Console\Application;
 
 class Http
 {
@@ -19,7 +21,7 @@ class Http
 
     protected $request;
 
-    public function init (Core $app)
+    public function init (Core $app): Http
     {
         $this->app = $app;
 
@@ -30,17 +32,35 @@ class Http
     {
         $this->setRequest ($request);
 
-        return $this->runWithRouter ();
+        $runMode = php_sapi_name ();
+
+        if(php_sapi_name () == "cli" || php_sapi_name() == 'phpdbg') $this->runWithoutRouter ();
+        else return $this->runWithRouter ($request);
     }
 
-    public function runWithRouter ()
+    public function runWithRouter (Request $request)
     {
-        $request = $this->app->newInstance("request");
         $router = $this->app->newInstance("router",true);
         $url = $router->init();
         $url = $router->setEngine()->getEngine()->parse($url);
         $request->setUrl ($url);
         return $router->set($request);
+    }
+
+    public function runWithoutRouter ()
+    {
+        $app = new Application();
+        $pathPrefix = DIR."Console".DS."App".DS."Commands";
+        scanFiles (DIR."Console/App/Commands",true,function($a, $v) use ($pathPrefix,$app){
+            $a = str_replace ("/",DS,$a);
+            $a = "presty\Console\App\Commands\\".str_replace (DS,"\\",str_replace (".php","",str_replace ($pathPrefix,"",$a)));
+            $app->add (new $a());
+        });
+        try {
+            $app->run ();
+        } catch (\Exception $e) {
+            new RunTimeException($e->getMessage (),$e->getFile (),$e->getLine ());
+        }
     }
 
     public function setRequest ($request): Http

@@ -15,12 +15,14 @@ namespace presty;
 
 class Template
 {
-    public function getTemplateContent ($fileName, $returnContent = true)
+    public function getTemplateContent ($fileName)
     {
-        $path = TEMPLATES . $fileName . config('template_suffix');
-        if ($returnContent) return file_get_contents ($path);
-        else {
-            return file_get_contents ($path);
-        }
+        $path = TEMPLATES . $fileName . get_config('env.template_suffix');
+        return file_get_contents ($path);
+    }
+
+    public function getTemplatePath ($fileName)
+    {
+        return TEMPLATES . $fileName . get_config('env.template_suffix');
     }
 }

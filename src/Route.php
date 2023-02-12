@@ -13,9 +13,13 @@
 
 
 namespace presty;
+use presty\exception\RunTimeException;
+
 class Route {
+
     public function set ($alias,$origin = "",$method = "*") {
-        global $route;
+        if(!app()->has("route")) return false;
+        else $route = app()->has("route");
         if(is_array ($method)){
             foreach ($method as $k => $v) {
                 $method[$k] = strtoupper ($k);
@@ -40,10 +44,12 @@ class Route {
                 });
             return $route;
         }
+        return false;
     }
 
     public function get ($alias,$origin = "") {
-        global $route;
+        if(!app()->has("route")) return false;
+        else $route = app()->has("route");
         $method = [];
         is_string ($alias) ? $data = [$alias] : $data = $origin;
         for ($i = 0;$i< count($data);$i++){
@@ -65,10 +71,12 @@ class Route {
                 });
             return $route;
         }
+        return false;
     }
 
     public function post ($alias,$origin = "") {
-        global $route;
+        if(!app()->has("route")) return false;
+        else $route = app()->has("route");
         $method = [];
         is_string ($alias) ? $data = [$alias] : $data = $origin;
         for ($i = 0;$i< count($data);$i++){
@@ -90,10 +98,12 @@ class Route {
                 });
             return $route;
         }
+        return false;
     }
 
     public function put ($alias,$origin = "") {
-        global $route;
+        if(!app()->has("route")) return false;
+        else $route = app()->has("route");
         $method = [];
         is_string ($alias) ? $data = [$alias] : $data = $origin;
         for ($i = 0;$i< count($data);$i++){
@@ -115,10 +125,12 @@ class Route {
                 });
             return $route;
         }
+        return false;
     }
 
     public function delete ($alias,$origin = "") {
-        global $route;
+        if(!app()->has("route")) return false;
+        else $route = app()->has("route");
         $method = [];
         is_string ($alias) ? $data = [$alias] : $data = $origin;
         for ($i = 0;$i< count($data);$i++){
@@ -140,10 +152,12 @@ class Route {
                 });
             return $route;
         }
+        return false;
     }
 
     public function patch ($alias,$origin = "") {
-        global $route;
+        if(!app()->has("route")) return false;
+        else $route = app()->has("route");
         $method = [];
         is_string ($alias) ? $data = [$alias] : $data = $origin;
         for ($i = 0;$i< count($data);$i++){
@@ -165,14 +179,16 @@ class Route {
                 });
             return $route;
         }
+        return false;
     }
 
     public function newRule ($alias = [],$origin = [],$method = ['*'])
     {
-        global $route;
+        if(!app()->has("route")) return false;
+        else $route = app()->has("route");
         $backup = $data = array_combine ($alias,$origin);
         $i = 0;
-        $file = file_get_contents (ROUTE . "route.php") or \ThrowError::throw(__FILE__, __LINE__, "EC100008");
+        $file = file_get_contents (ROUTE . "route.php") or new RunTimeException("file_get_contents函数执行出错",__FILE__,__LINE__);
         $pos = stripos ($file,"[");
         $head = substr ($file,0,$pos +2);
         $allowToWrite = false;
@@ -186,7 +202,7 @@ class Route {
             }
         }
         if($allowToWrite){
-            $fileResource = fopen (ROUTE."route.php",'r+') or \ThrowError::throw(__FILE__, __LINE__, "EC100008");
+            $fileResource = fopen (ROUTE."route.php",'r+') or new RunTimeException("fopen函数执行出错",__FILE__,__LINE__);
             fwrite ($fileResource,$file);
         }
         $i++;
@@ -206,7 +222,7 @@ class Route {
             $tempValue = $value[1];
             $array = array_filter (explode ("/", $key));
             if(empty($array)) $array[] = "/";
-            $combineKey = array_diff ($array, $info);
+            $combineKey = array_values (array_diff ($array, $info));
             $continue = true;
             $combine = "";
             if($combineKey[0] == $path['path']) $url = $tempValue;
@@ -218,6 +234,7 @@ class Route {
                 $combineKey = array_values($combineKey);
                 $diff = array_values (array_diff ($info, $array));
                 $combine = [];
+                var_dump ($combineKey);
                 foreach ($combineKey as $k => $v) {
                     $combine[] = "$v=$diff[$k]";
                 }

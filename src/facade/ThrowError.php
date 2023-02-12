@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
-class ThrowError extends Facade
+class Exception extends Facade
 {
     public static function setFacade () {
-        return "\startphp\ThrowError";
+        return "\presty\Exception";
     }
 }

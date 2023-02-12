@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
 class Cookie extends Facade
 {
     public static function setFacade () {
-        return "\startphp\Cookie";
+        return "\presty\Cookie";
     }
 }

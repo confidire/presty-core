@@ -26,7 +26,7 @@ class Run extends Command
     protected function configure ()
     {
         $this->setName ('run')
-            ->setDescription ('Start the local server built into the PHP system.')
+            ->setDescription ('View the local server built into the PHP system.')
             ->addOption ('host', 's', InputOption::VALUE_OPTIONAL, 'host to server', "127.0.0.1")
             ->addOption ('port', 'o', InputOption::VALUE_OPTIONAL, 'port to server', 8888)
             ->addOption ('path', 'a', InputOption::VALUE_OPTIONAL, 'path to server', ROOT . "public");
@@ -41,7 +41,7 @@ class Run extends Command
             'php -S %s:%d -t %s %s', $host, $port, escapeshellarg ($path), escapeshellarg ($path . DIRECTORY_SEPARATOR . 'test.php')
         );
         $output->writeln (sprintf ('Your Presty Server is started On <info><http://%s:%s/></info>', $host, $port));
-        $output->writeln (sprintf ('You can press <info>`CTRL-C`</info> to stop running'));
+        $output->writeln ('You can press <info>`CTRL-C`</info> to stop running');
         $output->writeln (sprintf ('Your site\'s root is: %s', $path));
         system ($command);
         return 0;

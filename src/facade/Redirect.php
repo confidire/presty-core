@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
 class Redirect extends Facade
 {
     public static function setFacade () {
-        return "\startphp\Redirect";
+        return "\presty\Redirect";
     }
 }

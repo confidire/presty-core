@@ -11,13 +11,12 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\format;
-use startphp\Response;
+namespace presty\exception\database;
 
-class Html extends Response
+class DatabaseException
 {
-
-    public function __construct ($content,$code = 200) {
-        $this->init($content,$code);
+    public function __construct ($errorMessage = '',$errorFile = __FILE__,$errorLine = __LINE__,$errorCode = "EC100003")
+    {
+        parent::throw ($errorFile,$errorLine,$errorCode,"Database Error",$errorMessage);
     }
 }

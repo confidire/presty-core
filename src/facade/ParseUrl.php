@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
 class ParseUrl extends Facade
 {
     public static function setFacade () {
-        return "\startphp\urlParser\Start";
+        return "\presty\urlParser\Start";
     }
 }

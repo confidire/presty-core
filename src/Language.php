@@ -21,23 +21,27 @@ class Language
 
     protected $header = "";
 
-    public function __construct ()
+    protected $app = null;
+
+    public function __construct ($app = "")
     {
+        if(empty($app)) $app = app();
+        $this->app = $app;
         $this->config = $this->config ();
         $this->header = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
     }
 
     public function load ($name = "")
     {
-        if ($this->config['judge_header_info']) $lang = $this->chooseHeaderLanguage ($this->parseHeader ($_SERVER['HTTP_ACCEPT_LANGUAGE']));
-        if(empty($name)) $lang = $this->config['default_languages'];
+        if ($this->app->newInstance("config")->get('language.judge_header_info',false)) $lang = $this->chooseHeaderLanguage ($this->parseHeader ($_SERVER['HTTP_ACCEPT_LANGUAGE']));
+        if(empty($name)) $lang = $this->app->newInstance("config")->get('language.default_languages',"zh-cn");
         $this->lang = require_once (LANGUAGES . strtolower($lang) . ".php");
         return $this->lang;
     }
 
     public function config ()
     {
-        return require_once CONFIG . "Language.php";
+        return require CONFIG . "Language.php";
     }
 
     public function parseHeader ($header = "")
@@ -75,14 +79,14 @@ class Language
                 }
             }
             if(count ($result) == 1){
-                if($this->config['limit_load_all_language'] && !in_array ($result,$this->config['allow_load_languages'])){
+                if($this->app->newInstance("config")->get('language.limit_load_all_language',false) && !in_array ($result,$this->app->newInstance("config")->get('language.allow_load_languages',['zh-cn']))){
                     continue;
                 }
                 $info = $result[0];
                 break;
             }else{
                 foreach ($result as $i) {
-                    if($this->config['limit_load_all_language'] && !in_array ($i,$this->config['allow_load_languages'])){
+                    if($this->app->newInstance("config")->get('language.limit_load_all_language',false) && !in_array ($i,$this->app->newInstance("config")->get('language.allow_load_languages',['zh-cn']))){
                         continue;
                     }
                     $info = $i;
@@ -90,7 +94,7 @@ class Language
                 }
             }
         }
-        if(empty($info)) $info = $this->config['default_languages'];
+        if(empty($info)) $info = $this->app->newInstance("config")->get('language.default_languages',"zh-cn");
         return $info;
     }
 

@@ -14,7 +14,7 @@
 namespace presty;
 
 
-use startphp\Container;
+use presty\Container;
 
 class Facade{
     public static function __callStatic($name,$args) {

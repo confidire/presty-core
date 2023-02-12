@@ -17,7 +17,7 @@ class Controller extends Facade
 {
     protected static function setFacade ()
     {
-        return 'startphp\Controller';
+        return 'presty\Controller';
     }
 
 }

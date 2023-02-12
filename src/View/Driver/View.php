@@ -11,9 +11,9 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\view;
+namespace presty\View\Driver;
 
-class Start
+class View
 {
     public $fileContent = "";
     protected $url = [];
@@ -22,26 +22,33 @@ class Start
     protected $outputOpinion = "";
     protected $output = false;
     protected $saveResult = false;
-    protected $subscript = "";
+    protected $subscript = [];
+    protected $templateEnginePrefix = "{{";
+    protected $templateEngineSuffix = "}}";
+    protected $variablePrefix = "$";
+    protected $constantPrefix = "%";
 
     public function parse ($fileContent, $data)
     {
-        global $url;
-        global $hasBeenRun;
         if(empty($fileContent)) return "";
         $this->data = $data;
-        $hasBeenRun['tpl'] = " - Template_Engine_Init";
-        $this->url = $url;
-        hook_getClassName ('beforeParseFile')->transfer ([$this->fileContent]);
+        app()->setArrayVar("hasBeenRun","tpl"," - Template_Engine_Init");
+        $this->url = app()->make("request")->siteUrl();
+        middleWare_getClassName ('beforeParseFile')->listening ([$this->fileContent]);
         $this->fileContent = $fileContent;
+        $this->templateEnginePrefix = get_config("View.template_engine_prefix","{{");
+        $this->templateEngineSuffix = get_config("View.template_engine_suffix","}}");
+        $this->variablePrefix = get_config("View.variable_prefix","$");
+        $this->constantPrefix = get_config("View.constant_prefix","%");
         $this->parseNotes ();
         $this->parseVars ();
+        $this->parseConstant ();
         $this->parseInclude ();
         $this->parseController ();
         $this->parseModel ();
         $this->parseFunction();
         $this->parseIf ();
-        hook_getClassName ('afterParseFile')->transfer ([$this->fileContent]);
+        middleWare_getClassName ('afterParseFile')->listening ([$this->fileContent]);
         return $this->fileContent;
     }
 
@@ -51,15 +58,15 @@ class Start
 
     protected function parseInclude ()
     {
-        $isMatched = preg_match_all ('/({{include=)(.)*?(}})/', $this->fileContent, $matches);
+        $isMatched = preg_match_all ('/('.$this->templateEnginePrefix.'include=)(.)*?('.$this->templateEngineSuffix.')/', $this->fileContent, $matches);
     }
 
     protected function parseController ()
     {
-        $isMatched = preg_match_all ('/{{controller=.*?}}/', trim ($this->fileContent), $matches);
+        $isMatched = preg_match_all ('/'.$this->templateEnginePrefix.'controller=.*?'.$this->templateEngineSuffix.'/', trim ($this->fileContent), $matches);
         if ($isMatched != 0) {
             for ($i = 0; $i < count ($matches, 1) - 1; $i++) {
-                $funcName = preg_replace ('/({{controller=)(.*?)(}})/', '$2', $matches[0][$i]);
+                $funcName = preg_replace ('/('.$this->templateEnginePrefix.'controller=)(.*?)('.$this->templateEngineSuffix.')/', '$2', $matches[0][$i]);
                 $this->fileContent = str_replace ($matches[0], "", $this->fileContent);
                 $className = "\\app\\" . $this->url['app'] . "\\" . ucfirst ($funcName) . "\\" . ucfirst ($funcName);
                 $class = new $className;
@@ -70,10 +77,10 @@ class Start
 
     protected function parseModel ()
     {
-        $isMatched = preg_match_all ('/{{model=.*?}}/', trim ($this->fileContent), $matches);
+        $isMatched = preg_match_all ('/'.$this->templateEnginePrefix.'model=.*?'.$this->templateEngineSuffix.'/', trim ($this->fileContent), $matches);
         if ($isMatched != 0) {
             for ($i = 0; $i < count ($matches, 1) - 1; $i++) {
-                $funcName = preg_replace ('/({{model=)(.*?)(}})/', '$2', $matches[0][$i]);
+                $funcName = preg_replace ('/('.$this->templateEnginePrefix.'model=)(.*?)('.$this->templateEngineSuffix.')/', '$2', $matches[0][$i]);
                 $this->fileContent = str_replace ($matches[0], "", $this->fileContent);
                 $className = "\\model" . "\\" . $funcName . "\\" . ucfirst ($funcName);
                 $class = new $className;
@@ -84,12 +91,12 @@ class Start
 
     protected function parseFunction ()
     {
-        $isMatched = preg_match_all ('/{{function=.*?}}/', trim ($this->fileContent), $matches);
+        $isMatched = preg_match_all ('/'.$this->templateEnginePrefix.'function=.*?'.$this->templateEngineSuffix.'/', trim ($this->fileContent), $matches);
         $matched = $matches[0];
         foreach ($matched as $v) {
             $this->fileContent = str_replace ($v,"",$this->fileContent);
-            $valid = preg_replace ('/{{function=(.*?)}}/', '$1', $v);
-            $origin = "{{".$valid."}}";
+            $valid = preg_replace ('/'.$this->templateEnginePrefix.'function=(.*?)'.$this->templateEngineSuffix.'/', '$1', $v);
+            $origin = $this->templateEnginePrefix.$valid.$this->templateEngineSuffix;
             $data = explode ("||",$valid);
             $info = explode ("\\",$data[0]);
             $func = array_pop ($info);
@@ -121,30 +128,27 @@ class Start
 
     protected function parseIf ()
     {
-        if(preg_match_all ('/{{if(.*)}}([\s\S]+?){{\/if}}/', trim ($this->fileContent), $matches)) {
+        if(preg_match_all ('/'.$this->templateEnginePrefix.'if(.*)'.$this->templateEngineSuffix.'([\s\S]+?)'.$this->templateEnginePrefix.'\/if'.$this->templateEngineSuffix.'/', trim ($this->fileContent), $matches)) {
             $matches = $matches[0];
-            $data = [];
             foreach ($matches as $item) {
-                $isMatched = preg_match_all ('/{{\/else.*}}/', $item);
+                $isMatched = preg_match_all ('/'.$this->templateEnginePrefix.'\/else.*'.$this->templateEngineSuffix.'/', $item);
                 if($isMatched == 0) {
-                    preg_match_all ('/{{if(.*)}}([\s\S]+?){{\/if}}/', $item, $i);
+                    preg_match_all ('/'.$this->templateEnginePrefix.'if(.*)'.$this->templateEngineSuffix.'([\s\S]+?)'.$this->templateEnginePrefix.'\/if'.$this->templateEngineSuffix.'/', $item, $i);
                     $condition = $i[1][0];
                     $content = $i[2][0];
                     $result = $this->parseIfByManual ($condition,$content,$item,true);
                     if($result) break;
                 }
                 else{
-
-                    $isMatched = preg_match_all ('/{{if(.*)}}([\s\S]+?).*{{\//', trim ($this->fileContent), $i);
+                    $isMatched = preg_match_all ('/'.$this->templateEnginePrefix.'if(.*)'.$this->templateEngineSuffix.'([\s\S]+?).*'.$this->templateEnginePrefix.'\//', trim ($this->fileContent), $i);
                     if($isMatched != 0) {
                         $condition = $i[1][0];
                         $content = $i[2][0];
                         $result = $this->parseIfByManual ($condition, $content, $item);
                         if($result) break;
                     }
-                    else \ThrowError::throw(__FILE__,__LINE__,"");
 
-                    $isMatched = preg_match_all ('/elseif(.*)}}([\s\S]+?).*{{\//', trim ($this->fileContent), $k);
+                    $isMatched = preg_match_all ('/elseif(.*)'.$this->templateEngineSuffix.'([\s\S]+?).*'.$this->templateEnginePrefix.'\//', trim ($this->fileContent), $k);
                     if($isMatched != 0){
                         for ($i=0;$i<count($k)-1;$i++){
                             $condition = $k[1][$i];
@@ -153,7 +157,7 @@ class Start
                         }
                     }
 
-                    $isMatched = preg_match_all ('/else}}([\s\S]+?).*{{\//', trim ($this->fileContent), $i);
+                    $isMatched = preg_match_all ('/else'.$this->templateEngineSuffix.'([\s\S]+?).*'.$this->templateEnginePrefix.'\//', trim ($this->fileContent), $i);
                     if($isMatched != 0){
                         $this->parseIfByManual ("",$i[1][0],$item);
                     }
@@ -185,38 +189,57 @@ class Start
 
     protected function parseVars ()
     {
-        preg_match_all ('/{{\$.+?}}/', trim ($this->fileContent), $matches);
+        preg_match_all ('/'.$this->templateEnginePrefix.'\\'.$this->variablePrefix.'.+?'.$this->templateEngineSuffix.'/', trim ($this->fileContent), $matches);
+        if(empty($matches[0])) return $this->fileContent;
         $matched = $matches[0];
         foreach ($matched as $v) {
-            $valid = preg_replace ('/{{\$(.+?)}}/', '$1', $v);
-            $origin = "{{\$".$valid."}}";
+            $valid = preg_replace ('/'.$this->templateEnginePrefix.'\\'.$this->variablePrefix.'(.+?)'.$this->templateEngineSuffix.'/', '$1', $v);
+            $origin = "$this->templateEnginePrefix\$".$valid."$this->templateEngineSuffix";
             $data = explode ("||",$valid);
             $args = array_slice ($data,1);
             $v = $data[0];
             preg_match_all ('/\[.+?\]/', $v, $matches);
-            $matches = $matches[0];
+            preg_match_all ('/\.[^.|}]*/', $v, $matches2);
+            $matches = array_merge ($matches[0],$matches2[0]);
             if(count($matches) > 0) {
                 foreach ($matches as $value) {
-                    $this->subscript = preg_replace ('/\[(.+?)\]/', '$1', $value);
+                    if(!is_bool (stripos ($value,"."))) {
+                        $tempSubscript = str_replace ("'.$this->templateEngineSuffix.'", "", str_replace ("'.$this->templateEnginePrefix.'\$", "", $value));
+                        $tempSubscript = str_replace (".","",$tempSubscript);
+                        $this->subscript[] = $tempSubscript;
+                        $v = str_replace ($value,"",$v);
+                        continue;
+                    }
+                    $this->subscript[] = preg_replace ('/\[(.+?)\]/', '$1', $value);
                     $v = str_replace ($value,"",$v);
                 }
             }
-            if (strstr ($v, "%")) {
-                $this->replaceText = substr ($v, "1");
-                $this->replaceText = constant (strtoupper ($this->replaceText));
-            } else {
                 if (isset($this->data[$v])) {
                     $this->replaceText = $this->data[$v];
                 } else {
                     eval("global \$$v;");
                     eval("\$this->replaceText = \"\$$v\";");
                 }
-            }
             if (count($args) > 0) {
                 $this->callFunction ($args);
             }
-            if($this->subscript != "") $this->replaceText = $this->replaceText[$this->subscript];
+            if(!empty($this->subscript))
+                foreach ($this->subscript as $item) {
+                    $this->replaceText = $this->replaceText[$item];
+                }
             $this->fileContent = str_replace ($origin, $this->replaceText, $this->fileContent);
+        }
+    }
+
+    protected function parseConstant()
+    {
+        preg_match_all ('/'.$this->templateEnginePrefix.'\\'.$this->constantPrefix.'.+?'.$this->templateEngineSuffix.'/', trim ($this->fileContent), $matches);
+        if(empty($matches[0])) return $this->fileContent;
+        $matched = $matches[0];
+        foreach ($matched as $item) {
+            $originalText = $item;
+            $item = strtoupper (str_replace ($this->templateEnginePrefix.$this->constantPrefix,"",str_replace ($this->templateEngineSuffix,"",$item)));
+            $this->fileContent = str_replace ($originalText,constant ($item),$this->fileContent);
         }
     }
 

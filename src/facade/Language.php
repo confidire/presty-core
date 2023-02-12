@@ -16,6 +16,6 @@ namespace presty\Facade;
 class Language
 {
 public static function setFacade () {
-    return "\startphp\Language";
+    return "\presty\Language";
 }
 }

@@ -11,9 +11,9 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\format;
+namespace presty\Response\Driver;
 
-use startphp\Response;
+use presty\Response;
 
 class Jsonp extends Response
 {

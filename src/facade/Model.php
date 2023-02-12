@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
 class Model extends Facade
 {
     public static function setFacade () {
-        return "\startphp\Model";
+        return "\presty\Model";
     }
 }

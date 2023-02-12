@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
 class AntiXSS extends Facade
 {
     public static function setFacade () {
-        return "\startphp\AntiXSS";
+        return "\presty\AntiXSS";
     }
 }

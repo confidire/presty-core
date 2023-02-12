@@ -13,28 +13,26 @@
 
 namespace presty;
 
-class Hook
+use presty\exception\InvalidArgumentException;
+
+class MiddleWare
 {
 
     protected $className = "";
 
     protected $functionName = "";
 
-    public function __construct () {
-        global $hook;
-        if(empty($hook)){
-            $hook = require_once CONFIG . "Hook.php";
-        }
+    public function __construct ($app = "") {
+        if(is_object ($app)) if(!$app->has("middleWare")) $app->setVar("middleWare",require CONFIG . "MiddleWare.php");
     }
 
-    public function transfer ($args = "", $className = "", $functionName = "")
+    public function listening ($args = "", $className = "", $functionName = "")
     {
-        global $hook;
         if (empty($className) && empty($functionName)) {
             $functionName = $this->functionName;
             $className = $this->className;
         }
-        if (empty($className) && empty($functionName)) \ThrowError::throw(__FILE__, __LINE__, "EC100007");
+        if (empty($className) && empty($functionName)) new InvalidArgumentException("函数transfer()至少需要提供2个非空参数，已提供1个","EC100007");
         if (empty($className) && !empty($functionName)) return false;
         if (count ($className) > 1) {
             foreach ($className as $key => $value) {
@@ -47,25 +45,22 @@ class Hook
         }
     }
 
-    public function getClassName ($hookName, $returnString = false)
+    public function getClassName ($middleWareName, $returnString = false,$middleWare = [])
     {
-        global $hook;
-        if ($returnString) return $hook[$hookName];
-        else {
-            $this->functionName = $hookName;
-            $this->className = $hook[$hookName];
-            return $this;
+        if(empty($middleWare)) $middleWare = app()->has("middleWare","",true);
+        if (isset($middleWare[$middleWareName])) {
+            if ($returnString) return $middleWare[$middleWareName];
+            else {
+                $this->functionName = $middleWareName;
+                $this->className = $middleWare[$middleWareName];
+                return $this;
+            }
         }
+        else return false;
     }
 
-    public function bind ($hookName, $className)
+    public function bind ($middlewareName, $className)
     {
-        global $hook;
-        array_push ($hook[$hookName], $className);
-    }
-
-    protected static function setFacade ()
-    {
-        return '\Hook';
+        app()->setArrayVar("middleware",$middlewareName,$className);
     }
 }

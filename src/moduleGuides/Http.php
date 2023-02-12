@@ -11,22 +11,22 @@
  * +----------------------------------------------------------------------
  */
 
-namespace moduleGuides;
+namespace ModuleGuides;
 
-use startphp\Container;
+use presty\Container;
 
 class Http
 {
     protected $app;
 
-    public function register (\startphp\Core $app)
+    public function register (\presty\Core $app)
     {
         $app->newInstance ("http",true);
         $app->newInstance ("request",true);
-        $app->newInstance ("response",true);
+        $app->newInstance ("Response",true);
     }
 
-    public function init (\startphp\Core $app)
+    public function init (\presty\Core $app)
     {
         return $app->make("http")->init($app)->operate($app->make("request"));
     }

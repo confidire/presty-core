@@ -21,7 +21,6 @@ class Env
         if (!file_exists($filePath)) return false;
         $env = parse_ini_file($filePath, true);
         foreach ($env as $name => $value) {
-            $parentNode = "";
             if(is_array ($value)){
                 $parentNode = $name;
                 foreach ($value as $n => $v) {
@@ -35,6 +34,7 @@ class Env
             }
         }
     }
+
     public static function get(string $name, $default = null)
     {
         $result = getenv(strtoupper(str_replace('.', '_', $name)));

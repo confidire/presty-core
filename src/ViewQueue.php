@@ -13,17 +13,20 @@
 
 namespace presty;
 
+use presty\exception\InvalidArgumentException;
+use presty\exception\RunTimeException;
+
 class ViewQueue
 {
     protected $queue = [];
     protected $mainView;
     protected $viewName;
 
-    function init (\startphp\View $view, $name)
+    function init (\presty\View $view, $name): ViewQueue
     {
         $this->queue[$name] = $view;
         $this->mainView = $view;
-        container_instance ("view",$this->mainView);
+        container_instance ("View",$this->mainView);
         return $this;
     }
 
@@ -61,23 +64,22 @@ class ViewQueue
         $this->queue[$name] = new View();
     }
 
-    public function set ($name, $view)
+    public function set ($name, $view): bool
     {
         $this->queue[$name] = $view;
         return isset($this->queue[$name]);
     }
 
-    public function setMainView ($view)
+    public function setMainView ($view): bool
     {
-        container_instance ("view",$this->mainView);
+        container_instance ("View",$this->mainView);
         if(is_object ($view)) {
             $this->mainView = $view;
-            return true;
         }
         else {
-            $this->mainView = !is_bool ($result = array_search ($view, $this->queue)) ? $result : \ThrowError::throw(__FILE__, __LINE__, "EC100011", $view);
-            return true;
+            $this->mainView = !is_bool ($result = array_search ($view, $this->queue)) ? $result : new RunTimeException("视图对象不存在",__FILE__,__LINE__,"EC100007");
         }
+        return true;
     }
 
     public function toggle ($targetView)
@@ -90,7 +92,7 @@ class ViewQueue
     public function delete ($name = "")
     {
         if (empty($name)) $name = $this->viewName;
-        if (empty($name)) \ThrowError::throw(__FILE__, __LINE__, "EC1000012");
+        if (empty($name)) new InvalidArgumentException("name",__FILE__,__LINE__,"EC100032");
         unset($this->queue[$name]);
     }
 }

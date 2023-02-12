@@ -25,7 +25,7 @@ class ClearCache extends Command
 
     protected function configure ()
     {
-        $this->setName ('clear')
+        $this->setName ('clear:cache')
             ->setDescription ('Clears the application cache.')
             ->addOption ('path', 'p', InputOption::VALUE_OPTIONAL, 'path to clear', null)
             ->addOption ('cache', 'c', InputOption::VALUE_NONE, 'clear cache file')
@@ -35,23 +35,26 @@ class ClearCache extends Command
 
     protected function execute (InputInterface $input, OutputInterface $output)
     {
-        global $lang;
-        $output->writeln ($lang['cache_clear_start']);
+        $output->writeln (lang()['cache_clear_start']);
         if ($input->getOption ('cache')) {
             $path = ROOT . 'cache';
         } else {
             $path = $input->getOption ('path') ?: CACHE;
         }
-        $rmdir = $input->getOption ('dir') ? true : false;
+        $rmdir = (bool)$input->getOption ('dir');
         if (substr ($path, -1, 1) == "/") {
             $path = substr (rtrim ($path, DIRECTORY_SEPARATOR), 0, strlen ($path) - 1);
         } else {
             $path = rtrim ($path, DIRECTORY_SEPARATOR);
         }
+        if(!is_dir ($path)) {
+            $output->writeln ("<comment>" . "没有任何文件被清理" . "</comment>");
+            return 0;
+        }
         $files = $this->clear ($path, $rmdir);
-        $output->writeln ($lang['has_been_cleared_files_prefix'] . count ($files) . $lang['has_been_cleared_files_suffix']);
+        $output->writeln (lang()['has_been_cleared_files_prefix'] . count ($files) . lang()['has_been_cleared_files_suffix']);
         print_r ($files);
-        $output->writeln ("<info>" . $lang['cache_clear_successful'] . "</info>");
+        $output->writeln ("<info>" . lang()['cache_clear_successful'] . "</info>");
         $this->files = [];
         return 0;
     }

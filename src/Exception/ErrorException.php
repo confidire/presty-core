@@ -11,13 +11,9 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\Facade;
+namespace presty\exception;
 
-use startphp\Facade;
-
-class Hook extends Facade
+class ErrorException extends \Exception
 {
-    public static function setFacade () {
-        return "\startphp\Hook";
-    }
+
 }

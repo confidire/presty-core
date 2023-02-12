@@ -14,7 +14,7 @@
 if (!function_exists ("app")) {
     function app ()
     {
-        return \startphp\Container::getInstance ()->getClass('app');
+        return \presty\Container::getInstance ()->getClass('app');
     }
 }
 
@@ -140,66 +140,58 @@ if (!function_exists ("redirect_backoff")) {
 if (!function_exists ("container_get")) {
     function container_get ($key)
     {
-        global $container;
-        return $container->get ($key);
+        app()->get ($key);
     }
 }
 
 if (!function_exists ("container_bind")) {
     function container_bind ($key, $value)
     {
-        global $container;
-        return $container->bind ($key, $value);
+        app()->bind ($key, $value);
     }
 }
 
 if (!function_exists ("container_get")) {
     function container_get ($key)
     {
-        global $container;
-        return $container->get ($key);
+        app()->get ($key);
     }
 }
 
 if (!function_exists ("container_has")) {
     function container_has ($value)
     {
-        global $container;
-        return $container->isValueSet ($value);
+        app()->isValueSet ($value);
     }
 }
 
-if (!function_exists ("hook_transfer")) {
-    function hook_transfer ($className = "", $functionName = "", $args = "")
+if (!function_exists ("middleWare_listening")) {
+    function middleWare_listening ($className = "", $functionName = "", $args = "")
     {
-        require_once DIR."Hook.php";
-        $hook = new startphp\Hook;
-        return $hook->transfer ($className, $functionName, $args);
+        return \presty\Facade\MiddleWare::listening ($className, $functionName, $args);
     }
 }
 
-if (!function_exists ("hook_getClassName")) {
-    function hook_getClassName ($hookName, $returnString = false)
+if (!function_exists ("middleWare_getClassName")) {
+    function middleWare_getClassName ($hookName, $returnString = false)
     {
-        require_once DIR."Hook.php";
-        $hook = new startphp\Hook();
-        return $hook->getClassName ($hookName, $returnString);
+        require_once DIR."MiddleWare.php";
+        $hook = new presty\MiddleWare();
+        return \presty\Facade\MiddleWare::getClassName ($hookName, $returnString);
     }
 }
 
-if (!function_exists ("hook_bind")) {
-    function hook_bind ($hookName, $className)
+if (!function_exists ("middleWare_bind")) {
+    function middleWare_bind ($hookName, $className)
     {
-        global $hookClass;
-        return $hookClass->bind ($hookName, $className);
+        app()->middleWare->bind ($hookName, $className);
     }
 }
 
 if (!function_exists ("getMainView")) {
     function getMainView ()
     {
-        global $viewQueue;
-        return $viewQueue->getMainView();
+        app()->make("middleWare")->getMainView();
     }
 }
 
@@ -216,18 +208,38 @@ if (!function_exists ("global")) {
     }
 }
 
-if (!function_exists ("env")) {
-    function env ($name,$default = "")
+if (!function_exists ("config")) {
+    function config ()
     {
-        return \startphp\Env::get($name,$default);
+        return app()->newInstance("config");
     }
 }
 
-if (!function_exists ("config")) {
-    function config ($name,$default = "")
+if (!function_exists ("get_config")) {
+    function get_config ($name, $default = "")
     {
-        global $config;
-        return $config[$name] ?? $default;
+        return app()->newInstance("config")->get($name,$default);
+    }
+}
+
+if (!function_exists ("get_all_config")) {
+    function get_all_config ()
+    {
+        return app()->newInstance("config")->getAll();
+    }
+}
+
+if (!function_exists ("getConfigFile")) {
+    function getConfigFile ($filePath)
+    {
+        return app()->newInstance("config")->getFile($filePath);
+    }
+}
+
+if (!function_exists ("env")) {
+    function env ($name,$default = "")
+    {
+        return \presty\Env::get($name,$default);
     }
 }
 
@@ -241,21 +253,21 @@ if (!function_exists ("model")) {
 if (!function_exists ("appPath")) {
     function appPath ()
     {
-        return APP.globals("url")["app"].DS;
+        return APP.app()->make("request")->controllerApp().DS;
     }
 }
 
 if (!function_exists ("appClass")) {
     function appClass ()
     {
-        return "app\\".globals("url")["app"];
+        return "app\\".app()->make("request")->controllerApp();
     }
 }
 
 if (!function_exists ("parseGlobalUrl")) {
-    function parseGlobalUrl (\startphp\Request $request)
+    function parseGlobalUrl (\presty\Request $request)
     {
-        $parser = config('url_parser','startphp\urlParser\Start');
+        $parser = get_config('env.url_parser', 'presty\urlParser\Presty');
         $parser = new $parser;
         $url = $parser->init();
         $url = $parser->parse($url);
@@ -268,20 +280,10 @@ if (!function_exists ("parseGlobalUrl")) {
 if (!function_exists ("parseUrl")) {
     function parseUrl ($url)
     {
-        $parser = config('url_parser','startphp\urlParser\Start');
+        $parser = get_config('env.url_parser', 'presty\urlParser\Presty');
         $parser = new $parser;
         $url = $parser->parse($url);
         return $url;
-    }
-}
-
-if (!function_exists ("lockPage")) {
-    function lockPage ($content)
-    {
-        $view = app ()->make("viewQueue")->getMainView ();
-        $response = $view->setContent ($content);
-        $view->setProtect ();
-        return $response;
     }
 }
 
@@ -297,8 +299,8 @@ if (!function_exists ("echoCode")) {
     }
 }
 
-if (!function_exists ("scan")) {
-    function scan ($dir,$deepScan,$function)
+if (!function_exists ("scanFiles")) {
+    function scanFiles ($dir,$deepScan,$function)
     {
         $temp = scandir ($dir);
         foreach ($temp as $v) {
@@ -307,7 +309,7 @@ if (!function_exists ("scan")) {
                 if ($v == '.' || $v == '..') {
                     continue;
                 }
-                if($deepScan)scan ($a,$deepScan,$function);
+                if($deepScan)scanDir ($a,$deepScan,$function);
                 else continue;
             } else {
                 $fileFullPath = $a;
@@ -330,8 +332,8 @@ if (!function_exists ("lang")) {
 if (!function_exists ("response")) {
     function response ($data,$args = [],$code = 200)
     {
-        $type = "view";
-        return app()->make("response")->create($data,$type,$code,$args);
+        $type = "View";
+        return app()->make("Response")->create($data,$type,$code,$args);
     }
 }
 
@@ -339,7 +341,7 @@ if (!function_exists ("json")) {
     function json ($data,$args = [],$code = 200)
     {
         $type = "json";
-        return app()->make("response")->create($data,$type,$code,$args);
+        return app()->make("Response")->create($data,$type,$code,$args);
     }
 }
 
@@ -347,7 +349,7 @@ if (!function_exists ("jsonp")) {
     function jsonp ($data,$args = [],$code = 200)
     {
         $type = "jsonp";
-        return app()->make("response")->create($data,$type,$code,$args);
+        return app()->make("Response")->create($data,$type,$code,$args);
     }
 }
 
@@ -355,7 +357,7 @@ if (!function_exists ("html")) {
     function html ($data,$args = [],$code = 200)
     {
         $type = "html";
-        return app()->make("response")->create($data,$type,$code,$args);
+        return app()->make("Response")->create($data,$type,$code,$args);
     }
 }
 

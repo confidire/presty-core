@@ -11,7 +11,7 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\format\AntiXSS;
+namespace presty\Response\Driver;
 class AntiXSS
 {
     public function antiXss ($str)

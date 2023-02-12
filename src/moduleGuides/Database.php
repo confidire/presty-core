@@ -11,14 +11,14 @@
  * +----------------------------------------------------------------------
  */
 
-namespace moduleGuides;
+namespace ModuleGuides;
 
 class Database
 {
-    public function register (\startphp\Core $app)
+    public function register (\presty\Core $app)
     {
-        if(config ("database_auto_load")) {
-            $app->database = new \startphp\Database(
+        if(get_config ("env.database_auto_load")) {
+            $app->database = new \presty\Database(
                 env ('database.type', "mysql"),
                 env ('database.host', "127.0.0.1"),
                 env ('database.name', ""),

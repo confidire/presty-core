@@ -13,6 +13,9 @@
 
 namespace presty;
 
+use presty\exception\InvalidArgumentException;
+use presty\exception\NotFoundException;
+use presty\exception\RunTimeException;
 use ReflectionClass;
 
 class Container
@@ -42,12 +45,12 @@ class Container
     }
 
     //手动设置自身实例对象
-    public static function setInstance ($instance)
+    public static function setInstance (object $instance)
     {
         static::$instance = $instance;
     }
 
-    public function bind ($key, $value = null): bool
+    public function bind ($key, $value = null): Container
     {
         if (is_array ($key) && $value == null) foreach ($key as $key => $val) $this->bind ($key, $val);
         elseif ($value instanceof Closure) $this->bind[$key] = $value;
@@ -72,7 +75,7 @@ class Container
     }
 
     //将实例对象绑定到容器中
-    public function instance ($key, $instance)
+    public function instance ($key, $instance): Container
     {
         $key = $this->liftAlias ($key);
 
@@ -134,6 +137,19 @@ class Container
         return $this->instances[$name] ?? false;
     }
 
+    public function setVar ($name,$value): Container
+    {
+        $this->vars[$name] = $value;
+        return $this;
+    }
+
+    public function setArrayVar ($name,$key,$value): Container
+    {
+        if(!is_array ($this->vars[$name])) new RunTimeException($name."不是Array类型的变量",__FILE__,__LINE__);
+        $this->vars[$name][$key] = $value;
+        return $this;
+    }
+
     public function has ($name, $value = "", $returnValue = false)
     {
         if (is_bool ($name) && $name && !empty($value)) {
@@ -146,7 +162,7 @@ class Container
             if ($returnValue) return isset($this->vars[$name]) && $this->vars[$name] == $value ? $this->vars[$name] : false;
             else return isset($this->vars[$name]) && $this->vars[$name] == $value;
         } else {
-            \ThrowError::throw (__FILE__, __LINE__, "EC100016", "Name: " . $name . " Value: " . $value . " returnValue: " . $returnValue);
+            new InvalidArgumentException ("Name: " . $name . " Value: " . $value . " returnValue: " . $returnValue,__FILE__, __LINE__);
         }
     }
 
@@ -155,7 +171,7 @@ class Container
         try {
             $reflect = new ReflectionFunction($function);
         } catch (ReflectionException $e) {
-            \ThrowError::throw (__FILE__, __LINE__, "EC100021", $function);
+            new NotFoundException ($function, __FILE__, __LINE__, "EC100010");
         }
 
         return $function(...$vars);
@@ -166,18 +182,26 @@ class Container
     {
         try {
             $reflect = new ReflectionClass($class);
-        } catch (ReflectionException $e) {
-            \ThrowError::throw (__FILE__, __LINE__, "EC100017", $class);
+        } catch (\ReflectionException $e) {
+            new NotFoundException ($class, __FILE__, __LINE__, "EC100009");
         }
         if ($reflect->hasMethod ('__make')) {
             $method = $reflect->getMethod ('__make');
             if ($method->isPublic () && $method->isStatic ()) {
-                return $method->invokeArgs (null, $args);
+                try {
+                    return $method->invokeArgs (null, $args);
+                } catch (\ReflectionException $e) {
+                    Error::runException ($e);
+                }
             }
         }
         $constructor = $reflect->getConstructor ();
         $args = $constructor ? $args : [];
-        return $reflect->newInstanceArgs ($args);
+        try {
+            return $reflect->newInstanceArgs ($args);
+        } catch (\ReflectionException $e) {
+            Error::runException ($e);
+        }
     }
 
     public function __get ($name)

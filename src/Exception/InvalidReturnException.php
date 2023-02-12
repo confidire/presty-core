@@ -11,21 +11,13 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\format;
+namespace presty\exception;
 
-use startphp\Response;
+use presty\Exception;
 
-class Json extends Response
+class InvalidReturnException extends Exception
 {
-    protected $vars = ['json_handler' => JSON_UNESCAPED_UNICODE];
-
-    public function __construct ($content = "",$code = 200) {
-        $this->init($content,$code);
-    }
-
-    public function handle ($content = "")
-    {
-        $this->content = json_encode ($content,$this->vars['json_handler']);
-        return $this;
+    public function __construct ($errorMessage = '',$errorFile = __FILE__,$errorLine = __LINE__) {
+        parent::throw ($errorFile,$errorLine,"EC100023","Return Value Error",$errorMessage);
     }
 }

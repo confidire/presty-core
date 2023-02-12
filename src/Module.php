@@ -20,17 +20,17 @@ class Module
 
     protected $app = null;
 
-    public function init (Core $app)
+    public function init (Core $app): Module
     {
         $this->modules = require_once CONFIG."Module.php";
         $this->app = $app;
         return $this;
     }
 
-    public function guide ($modules = null)
+    public function guide ($modules = null): bool
     {
         $modules = $modules ?: $this->modules;
-        if(empty($modules)) return false; //ThrowError
+        if(empty($modules)) return false; //Exception
         foreach ($modules as $key => $value) {
             if(count($value) == 1){
                 if(is_array ($value[0])){
@@ -65,6 +65,6 @@ class Module
         $class = new $this->modules[$moduleName][$classIndex];
         if(method_exists ($class,$functionName))
         return call_user_func_array ([$class,$functionName],$args);
-        else return false; //ThrowError
+        else return false; //Exception
     }
 }

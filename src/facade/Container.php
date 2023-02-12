@@ -13,11 +13,11 @@
 
 namespace presty\Facade\Container;
 use ReflectionClass;
-use startphp\Facade\Facade;
+use presty\Facade\Facade;
 
 class Container extends Facade
 {
     public static function setFacade () {
-        return "\startphp\Container\Container";
+        return "\presty\Container\Container";
     }
 }

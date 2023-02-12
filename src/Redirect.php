@@ -19,7 +19,6 @@ class Redirect
     {
         ob_end_clean ();
         if ($remember) {
-            global $url;
             setcookie ("lastRedirectUrl", $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
         }
         header ("Location: " . $targetUrl);

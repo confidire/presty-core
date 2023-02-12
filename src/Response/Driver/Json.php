@@ -11,32 +11,21 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\format;
+namespace presty\Response\Driver;
 
-use startphp\Response;
+use presty\Response;
 
-class View extends Response
+class Json extends Response
 {
+    protected $vars = ['json_handler' => JSON_UNESCAPED_UNICODE];
 
-    protected $view;
-
-    public function __construct ($view,$content,$code = 200) {
+    public function __construct ($content = "",$code = 200) {
         $this->init($content,$code);
-        $this->view = $view;
     }
 
     public function handle ($content = "")
     {
-        if(empty($content)) $content = $this->content;
-        $this->filter ($this->content);
-
+        $this->content = json_encode ($content,$this->vars['json_handler']);
         return $this;
     }
-
-    public function filter ($content = "")
-    {
-        if(empty($content)) $content = $this->content;
-        return $this->view->filter($content)->render("%self%",$this);
-    }
-
 }

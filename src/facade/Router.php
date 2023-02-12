@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
 class Router extends Facade
 {
     public static function setFacade () {
-        return "\startphp\Router";
+        return "\presty\Router";
     }
 }

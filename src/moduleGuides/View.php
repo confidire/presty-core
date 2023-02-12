@@ -11,11 +11,11 @@
  * +----------------------------------------------------------------------
  */
 
-namespace moduleGuides;
+namespace ModuleGuides;
 
 class View
 {
-    public function register (\startphp\Core $app)
+    public function register (\presty\Core $app)
     {
         //注册View队列
         $app->instance('viewQueue',$app->viewQueue->init($view = $app->view,"systemView"));

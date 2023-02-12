@@ -13,6 +13,8 @@
 
 namespace presty;
 
+use presty\exception\NotFoundException;
+
 class View
 {
 
@@ -30,13 +32,13 @@ class View
 
     public function __construct ()
     {
-        hook_getClassName ('viewInit')->transfer ();
-        if(getClass("response") == false){
+        middleWare_getClassName ('viewInit')->listening ();
+        if(getClass("Response") == false){
             $content = "";
             $this->response = new Response;
-            $this->response = $this->response->create ($content, config ('response_type', 'view'), 200, [$this]);
+            $this->response = $this->response->create ($content, get_config ('env.response_type', 'View'), 200, [$this]);
             $this->response->setContent($content);
-            app()->instance("response",$this->response);
+            app()->instance("Response",$this->response);
         }
     }
 
@@ -46,9 +48,9 @@ class View
             if (is_string ($engine) && !empty($engine)) {
                 $engine = new $engine;
             } elseif (is_null ($engine)) {
-                if (class_exists ($class = config ('template_engine', '\startphp\view\Start')))
+                if (class_exists ($class = get_config ('env.template_engine', 'presty\View\Driver\View')))
                     $engine = new $class;
-                else \ThrowError::throw (__FILE__, __LINE__, "EC100019");
+                else new NotFoundException($class,__FILE__,__LINE__,"EC100009");
             }
             return $engine;
         } else return $this->engine;
@@ -67,16 +69,16 @@ class View
     public function render ($content = "",$response = null)
     {
         if ($this->protectInfo) $content = "";
-        if(is_null ($response)) $response = getClass ("response");
-        if (config('render_auto_clean',false) && $this->firstRender) ob_clean ();
+        if(is_null ($response)) $response = getClass ("Response");
+        if (get_config('env.render_auto_clean',false) && $this->firstRender) ob_clean ();
         if (empty($content) || $content == "%self%") $content = $this->content;
-        if (config('auto_xss_protect',false)) {
-            $antiXss = new \startphp\format\AntiXSS\AntiXSS();
+        if (get_config('env.auto_xss_protect',false)) {
+            $antiXss = new \presty\format\AntiXSS\AntiXSS();
             $content = $antiXss->antiXss ($content);
         }
         if ($this->firstRender) $this->firstRender = false;
         if (!is_bool ($name = array_search ($this, container_newInstance ("viewQueue")->getQueue ()))) container_newInstance ("viewQueue")->set ($name, $this);
-        hook_getClassName ('beforeRender')->transfer ();
+        middleWare_getClassName ('beforeRender')->listening ();
         ob_start ();
         $this->output ($response,$content, true);
         $this->protectInfo = false;
@@ -105,7 +107,6 @@ class View
     public function getFileContent ($path, $returnContent = false)
     {
         if ($this->protectInfo) return $this;
-        global $config;
         $allowToLoad = false;
         $content = "";
         $app = array_filter (explode ("/", $path))[0];
@@ -114,10 +115,10 @@ class View
         } else {
             $allowToLoad = true;
         }
-        $path = APP . $path . config ('file_suffix', '.html');
+        $path = APP . $path . get_config ('env.file_suffix', '.html');
         if ($allowToLoad) $content = file_get_contents ($path);
-        else $content = file_get_contents (TEMPLATES . config('access_denied_page') . config('template_suffix'));
-        $response = app()->make("response")->create ("", config ('response_type', 'view'), 200, [$this]);
+        else $content = file_get_contents (TEMPLATES . get_config('env.access_denied_page') . get_config('template_suffix'));
+        $response = app()->make("Response")->create ("", get_config ('env.response_type', 'View'), 200, [$this]);
         $response->setContent($content);
         return $content;
     }
@@ -151,7 +152,7 @@ class View
     public function antiXss ($content = "")
     {
         if (empty($content)) $content = $this->content;
-        $antiXss = new \startphp\AntiXSS\AntiXSS();
+        $antiXss = new \presty\AntiXSS\AntiXSS();
         $this->content = $antiXss->antiXss ($content);
     }
 

@@ -13,6 +13,10 @@
 
 namespace presty;
 
+use presty\exception\InvalidReturnException;
+use presty\exception\NotFoundException;
+use presty\Facade\Template;
+
 class Router
 {
 
@@ -20,9 +24,9 @@ class Router
 
     protected $response = null;
 
-    public function setEngine ($engine = null)
+    public function setEngine ($engine = null): Router
     {
-        $this->engine = $engine ?? Container::getInstance ()->invokeClass(config('url_parser','startphp\urlParser\Start'));
+        $this->engine = $engine ?? Container::getInstance ()->invokeClass(get_config('env.url_parser', 'presty\Router\Driver\Presty'));
 
         return $this;
     }
@@ -37,25 +41,22 @@ class Router
         $query_file = $_SERVER["REQUEST_URI"];
         if ($query_file == "/") $query_file = "/index";
         if (is_file (PUBLICDIR . substr ($query_file, 1))) {
-            $finfo = finfo_open (FILEINFO_MIME_TYPE);
-            $type = finfo_file ($finfo, PUBLICDIR . substr ($query_file, 1));
+            $fInfo = finfo_open (FILEINFO_MIME_TYPE);
+            $type = finfo_file ($fInfo, PUBLICDIR . substr ($query_file, 1));
             echo file_get_contents (PUBLICDIR . substr ($query_file, 1));
             header ("Content-type: $type");
             header ("Content-Disposition: attachment; filename= " . basename (PUBLICDIR . substr ($query_file, 1)));
             set_time_limit (10);
             return false;
         }
-
-        hook_getClassName ('routerInit')->transfer ([$query_file]);
-        $hasBeenRun['router'] = " - Router_Init";
-        global $route;
-
-        if (!isset($route)) {
+        app()->setArrayVar("hasBeenRun","rInit"," - Router_Init");
+        middleWare_getClassName ('routerInit')->listening ([$query_file]);
+        if (!app()->has("route")) {
             $route = [];
-            scan (ROUTE, true, function ($a) {
-                global $route;
+            scanFiles (ROUTE, true, function ($a) use($route) {
                 $data = include ($a);
                 $route = array_merge ($route, $data);
+                app()->setVar("route",$route);
             });
         }
         return $query_file;
@@ -69,36 +70,39 @@ class Router
         if ($query_file == "/") $query_file = "/index";
         if(file_exists(APP.ucfirst($url['app']).".php")){
             require_once(APP.ucfirst($url['app']).".php");
-            $class = "app\\".ucfirst($url['app'])."\Entrance\Entrance";
+            $class = "app\\"."Entrance\\".ucfirst($url['app']);
             $opinion = (new $class)->entrance($url) ?? true;
-            if(is_file(APP.ucfirst($url['app']).".php") && $opinion == false){
-                getClass("view")->setContent(\Template::getTemplateContent(config("access_denied_page","AccessDenied")))->setProtect();
+            if(is_file(APP.ucfirst($url['app']).".php") && !$opinion){
+                $this->response = app()->make("Response")->create (Template::getTemplateContent(get_config("env.access_denied_page","AccessDenied")), get_config ('env.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
+                return $this->response->handle();
             }
         }
-        if (is_dir (APP . $url['app'] . DS . "config" . DS)) scan (APP . $url['app'] . DS . "config" . DS, true, function ($a, $v) {
-            global $config, $url;
-            $config = array_merge ($config, require_once (APP . $url['app'] . DS . "config" . DS . pathinfo ($v, PATHINFO_FILENAME) . ".php"));
+        if (is_dir (APP . $url['app'] . DS . "config" . DS)) scanFiles (APP . $url['app'] . DS . "config" . DS, true, function ($a, $v) use($url) {
+            config()->overwrite(array_merge (get_all_config (), require_once (APP . $url['app'] . DS . "config" . DS . pathinfo ($v, PATHINFO_FILENAME) . ".php")));
         });
-        getClass ("request")->setUrl($url);
+        $request->setUrl($url);
         if(file_exists (APP . $url['app'] . DS . "controller" . $url['path'] . $url['controller'] . ".php"))
             require_once (APP . $url['app'] . DS . "controller" . $url['path'] . $url['controller'] . ".php");
-        else \ThrowError::throw(__FILE__, __LINE__, "EC100020", $query_file);
+        else new NotFoundException(APP . $url['app'] . DS . "controller" . $url['path'] . $url['controller'] . ".php",__FILE__,__LINE__,"EC100024");
         $className = "\\" . "app" . "\\" . $url["app"] . "\\" . "controller" . "\\" . $url["controller"];
         $class = new $className;
         if (method_exists ($class, $url['function'])) {
-            $pageContent = call_user_func_array ([$class, $url['function']], [$url['vars']]);
+            $pageContent = call_user_func_array ([$class, $url['function']], [$request]);
         } elseif (method_exists ($class, "__call")) {
-            $pageContent = call_user_func_array ([$class, '__call'], [$url['function'], $url['vars']]);
+            $pageContent = call_user_func_array ([$class, '__call'], [$url['function'], [$request]]);
         } else {
-            if(empty(config ('404_template',''))) \ThrowError::throw(__FILE__, __LINE__, "EC100010", $className . "=>" . $url['function']);
-            else $this->response = lockPage (\Template::getTemplateContent(config('404_template','')));
+            if(empty(get_config ('env.404_template',''))) new NotFoundException($className . "->" . $url['function']."()",__FILE__,__LINE__,"EC100010");
+            else {
+                $this->response = app()->make("Response")->create (Template::getTemplateContent(get_config('env.404_template','')), get_config ('env.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
+                return $this->response->handle();
+            }
         }
         if (gettype ($pageContent) == "NULL") {
-            \ThrowError::throw(__FILE__, __LINE__, "EC100009", $class . "=>" . $url['function']);
+            new InvalidReturnException(lang()["controller_empty_return"],__FILE__,__LINE__);
         }
-        elseif(is_string ($pageContent)) $this->response = app()->make("response")->create ($pageContent, config ('response_type', 'view'), 200, [app()->make("view")]);
+        elseif(is_string ($pageContent)) $this->response = app()->make("Response")->create ($pageContent, get_config ('env.response_type', 'View'), 200, [app()->make("View")]);
         else $this->response = $pageContent;
-        hook_getClassName ('afterRouter')->transfer ([$query_file, $url]);
+        middleWare_getClassName ('afterRouter')->listening ([$query_file, $url]);
         return $this->response->handle();
     }
 }

@@ -13,11 +13,11 @@
 
 namespace presty\Facade;
 
-use startphp\Facade;
+use presty\Facade;
 
 class DevDebug extends Facade
 {
     public static function setFacade () {
-        return "\startphp\DevDebug";
+        return "\presty\DevDebug";
     }
 }

@@ -11,10 +11,10 @@
  * +----------------------------------------------------------------------
  */
 
-namespace moduleGuides;
+namespace ModuleGuides;
 class Storage
 {
-    public function register (\startphp\Core $app)
+    public function register (\presty\Core $app)
     {
         $app->newInstance ("session",true);
         $app->newInstance ("cookie",true);

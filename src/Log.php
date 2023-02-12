@@ -31,33 +31,36 @@ class Log
     //运行时间
     protected $runtime = 0;
 
-    protected function logOut ($content, $saveFile = "")
+    //完整运行时间
+    protected $totalRuntime;
+
+    public function logOut ($content, $saveFile = "")
     {
-        hook_getClassName ('beforeLogWrite')->transfer ([$content, $saveFile]);
-        $hasBeenRun['end'] = " - Log_Write";
-        $this->runtime = date ("Ym");
+        middleWare_getClassName ('beforeLogWrite')->listening ([$content, $saveFile]);
+        app()->setArrayVar("hasBeenRun",'end'," - Log_Write");
+        $this->runtime = date ("Y-m-d");
+        $this->totalRuntime = date ("H-i-s");
         $this->save_path .= $this->runtime;
-        if (!is_dir ($this->save_path)) {
-            mkdir ($this->save_path, 0777, true);
+        if (!is_dir ($this->save_path . DS . "runningLogs")) {
+            mkdir ($this->save_path . DS . "runningLogs", 0777, true);
         }
-        if (empty($saveFile)) $saveFile = time () . ".log";
-        $this->save_file = $this->save_path . "/" . $saveFile;
-        $file = fopen ($this->save_file, "a+");
+        if (empty($saveFile)) $saveFile = $this->totalRuntime."-".time () . ".log";
+        $this->save_file = $this->save_path . DS . "runningLogs" . DS . $saveFile;
+        if(!file_exists ($this->save_file)) fopen ($this->save_file, "w");
         file_put_contents ($this->save_file, $content);
     }
 
-    protected function errorOut ($content, $saveFile = CACHE . "Error.log")
+    public function errorOut ($content, $saveFile = CACHE . DS . "errorLogs" . DS . "Error.log")
     {
-        hook_getClassName ('beforeLogWrite')->transfer ([$content, $saveFile]);
-        $hasBeenRun['end'] = " - Log_Write";
+        middleWare_getClassName ('beforeLogWrite')->listening ([$content, $saveFile]);
+        app()->setArrayVar("hasBeenRun",'end'," - Log_Write");
         $this->runtime = date ("Ym");
         $this->save_path .= $this->runtime;
-        if (!is_dir ($this->save_path)) {
-            mkdir ($this->save_path);
+        if (!is_dir ($this->save_path . DS . "errorLogs")) {
+            mkdir ($this->save_path . DS . "errorLogs");
         }
-        if (!file_exists ($saveFile)) {
-            file_put_contents ($saveFile, "");
-        }
+        fopen ($this->save_file, "a+");
+        file_put_contents ($saveFile, "");
         error_log ($content, 0);
         error_log ($content . "\r\n" . "\r\n", 3, $saveFile);
     }
