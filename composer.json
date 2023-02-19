@@ -1,5 +1,5 @@
 {
-  "name": "tomanday/presty-core",
+  "name": "upstair/presty-core",
   "description": "presty framework core code",
   "require": {
     "php": ">=7.3",
