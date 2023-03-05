@@ -124,7 +124,7 @@ if (!function_exists ("cookie_empty")) {
 }
 
 if (!function_exists ("redirect")) {
-    function Redirect ($url = "", $remember = false)
+    function redirect ($url = "", $remember = false)
     {
         return Redirect::redirect ($url, $remember);
     }
@@ -148,13 +148,6 @@ if (!function_exists ("container_bind")) {
     function container_bind ($key, $value)
     {
         app()->bind ($key, $value);
-    }
-}
-
-if (!function_exists ("container_get")) {
-    function container_get ($key)
-    {
-        app()->get ($key);
     }
 }
 
@@ -195,7 +188,7 @@ if (!function_exists ("getMainView")) {
     }
 }
 
-if (!function_exists ("global")) {
+if (!function_exists ("globals")) {
     function globals ($vars)
     {
         if (isset($GLOBALS[$vars])) return $GLOBALS[$vars];
@@ -287,7 +280,7 @@ if (!function_exists ("parseUrl")) {
     }
 }
 
-if (!function_exists ("echoCode")) {
+if (!function_exists ("varDumpArray")) {
     function varDumpArray ($array,$formatOutput = true)
     {
         if($formatOutput){
@@ -389,8 +382,8 @@ if (!function_exists ("getConfigPath")) {
     }
 }
 
-if (!function_exists ("getmoduleGuidesPath")) {
-    function getmoduleGuidesPath ()
+if (!function_exists ("getModuleGuidesPath")) {
+    function getModuleGuidesPath ()
     {
         return app()->moduleGuidesPath();
     }
