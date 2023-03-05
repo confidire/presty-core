@@ -87,7 +87,29 @@ class Router
         $className = "\\" . "app" . "\\" . $url["app"] . "\\" . "controller" . "\\" . $url["controller"];
         $class = new $className;
         if (method_exists ($class, $url['function'])) {
+            $mdwClass = app()->make("middleWare");
+            $middlewares = $mdwClass->parseFunctionAttributesMiddleWare($class,$url['function']);
+            if(!empty($middlewares)){
+                foreach ($middlewares as $middleware) {
+                    if($middleware["args"]["call_type"] == "before" || $middleware["args"]["call_type"] == "class") {
+                        $args = $middleware["args"];
+                        unset ($args["call_type"],$args["name"]);
+                        $result = $mdwClass->call ($class,$middleware["args"]["name"],$args);
+                        if (!$result) exit();
+                    }
+                }
+            }
             $pageContent = call_user_func_array ([$class, $url['function']], [$request]);
+            if(!empty($middlewares)){
+                foreach ($middlewares as $middleware) {
+                    if($middleware["args"]["call_type"] == "after") {
+                        $args = $middleware["args"];
+                        unset ($args["call_type"],$args["name"]);
+                        $result = $mdwClass->call ($class,$middleware["args"]["name"],$args);
+                        if (!$result) exit();
+                    }
+                }
+            }
         } elseif (method_exists ($class, "__call")) {
             $pageContent = call_user_func_array ([$class, '__call'], [$url['function'], [$request]]);
         } else {

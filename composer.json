@@ -1,5 +1,5 @@
 {
-  "name": "upstair/presty-core",
+  "name": "tomanday/presty-core",
   "description": "presty framework core code",
   "require": {
     "php": ">=7.3",
@@ -21,7 +21,7 @@
   },
   "authors": [
     {
-      "name": "Upstair",
+      "name": "Tomanday",
       "email": "790455692@qq.com"
     }
   ],

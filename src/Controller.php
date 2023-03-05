@@ -18,7 +18,7 @@ use presty\Facade\Request;
 class Controller
 {
 
-    protected $view, $template,$request, $viewQueue;
+    protected $view, $template,$request, $viewQueue,$middlewareArgs = [];
 
     function __construct ()
     {
@@ -71,6 +71,16 @@ class Controller
     {
         $this->view->setContent ($content);
         return $this;
+    }
+
+    public function getMiddlewareArg ($name)
+    {
+        return $this->middlewareArgs[$name];
+    }
+
+    public function setMiddlewareArg ($args)
+    {
+        return $this->middlewareArgs = $args;
     }
 
 }

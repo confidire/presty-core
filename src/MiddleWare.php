@@ -13,7 +13,9 @@
 
 namespace presty;
 
+use presty\Dumper\Driver\Attributes;
 use presty\exception\InvalidArgumentException;
+use presty\exception\RunTimeException;
 
 class MiddleWare
 {
@@ -26,6 +28,7 @@ class MiddleWare
         if(is_object ($app)) if(!$app->has("middleWare")) $app->setVar("middleWare",require CONFIG . "MiddleWare.php");
     }
 
+    //监听并实例化指定中间件
     public function listening ($args = "", $className = "", $functionName = "")
     {
         if (empty($className) && empty($functionName)) {
@@ -57,6 +60,34 @@ class MiddleWare
             }
         }
         else return false;
+    }
+
+    public function parseFunctionAttributesMiddleWare ($class,$functionName)
+    {
+        try {
+            $reflection = new \ReflectionClass($class);
+        } catch (\ReflectionException $e) {
+            new RunTimeException("类反射失败-".$e->getMessage (),__FILE__,__LINE__);
+        }
+        $classDoc = $reflection->getDocComment();
+        if(!is_bool ($classDoc)) $classDoc = (new Attributes())->parse ($classDoc,"middleware");
+        else $classDoc = [];
+        try {
+            $functionDoc = $reflection->getMethod ($functionName)->getDocComment ();
+        } catch (\ReflectionException $e) {
+            new RunTimeException("类成员函数获取失败-".$e->getMessage (),__FILE__,__LINE__);
+        }
+        if(!is_bool ($functionDoc)) $functionDoc = (new Attributes())->parse ($functionDoc,"middleware");
+        else $functionDoc = [];
+
+        return array_merge ($classDoc,$functionDoc);
+    }
+
+    //直接调用已实例化的中间件模块
+    public function call ($class,$functionName,$args = [])
+    {
+        $class->setMiddlewareArg($args);
+        return call_user_func_array ([$class, $functionName], []);
     }
 
     public function bind ($middlewareName, $className)

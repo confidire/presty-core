@@ -47,9 +47,6 @@ class Console
     // 输出信息级别
     private $verbosity = self::VERBOSITY_NORMAL;
 
-    //输出内容
-    protected $content = "";
-
     //输出样式
     protected $styles = [
         'info' => '\033[36m',
@@ -67,51 +64,35 @@ class Console
     }
 
     public function render ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         return $this->styles["info"].$content.$this->styles["normal"];
     }
 
     public function info ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         echo $this->styles["info"].$content.$this->styles["normal"];
     }
 
     public function question ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         echo $this->styles["question"].$content.$this->styles["normal"];
     }
 
     public function debug ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         echo $this->styles["debug"].$content.$this->styles["normal"];
     }
 
     public function highlight ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         echo $this->styles["highlight"].$content.$this->styles["normal"];
     }
 
     public function warning ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         echo $this->styles["warning"].$content.$this->styles["normal"];
     }
 
     public function error ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         echo $this->styles["error"].$content.$this->styles["normal"];
 
     }
 
     public function success ($content = "") {
-        if(empty($content)) $content = $this->content;
-        if(empty($content)) new InvalidArgumentException("content",__FILE__,__LINE__,"EC100032");
         echo $this->styles["success"].$content.$this->styles["normal"];
     }
 
