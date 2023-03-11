@@ -23,7 +23,7 @@ const APP_SUB_NAME = "一款轻量级、易上手、完善化的后端PHP开发�
 if (php_sapi_name () != "cli" && php_sapi_name() != 'phpdbg') define ('ROOT', dirname ($_SERVER["DOCUMENT_ROOT"]) . DIRECTORY_SEPARATOR);
 else define ('ROOT', dirname (__DIR__,5) . DIRECTORY_SEPARATOR);
 const DS = DIRECTORY_SEPARATOR;
-const DIR = ROOT  . "vendor" . DS . "tomanday" . DS . "presty-core" . DS . "src" . DS;
+const DIR = ROOT  . "vendor" . DS . "upstair" . DS . "presty-core" . DS . "src" . DS;
 const APP = ROOT . 'app' . DS;
 const PUBLICDIR = ROOT . 'public' . DS;
 const STATICDIR = PUBLICDIR . 'static' . DS;
