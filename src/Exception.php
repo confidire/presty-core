@@ -19,28 +19,28 @@ class Exception
 {
     static function throw ($errFile, $errLine, $errCode = "EC100001", $errType = "System Error", $errTitle = "",$errTrace = "")
     {
-        if ((get_config ('env.error_auto_clean') !== null && get_config('env.error_auto_clean'))) {
+        if ((self::app()->newInstance("config")->get ('env.error_auto_clean') !== null && self::app()->newInstance("config")->get('env.error_auto_clean'))) {
             ob_clean ();
-        } elseif ((get_config ('env.error_auto_clean') === null && get_config('env.debug_mode'))) {
+        } elseif ((self::app()->newInstance("config")->get ('env.error_auto_clean') === null && self::app()->newInstance("config")->get('env.debug_mode'))) {
             ob_clean ();
         }
-        if (isset(lang()[$errCode]) && !empty($errTitle)) $errStr = lang()[$errCode] . " : ".$errTitle;
-        elseif(isset(lang()[$errCode])) $errStr = lang()[$errCode];
+        if (isset(self::lang()[$errCode]) && !empty($errTitle)) $errStr = self::lang()[$errCode] . " : ".$errTitle;
+        elseif(isset(self::lang()[$errCode])) $errStr = self::lang()[$errCode];
         elseif($errCode = "null") $errStr = $errTitle;
         else $errStr = "未捕获错误 : ".$errTitle;
-        if (env('system.debug.mode',false) && !app()->runningInConsole()) {
-            app()->make("debugMode")->output ();
+        if (self::env('system.debug.mode',false) && !self::app()->runningInConsole()) {
+            self::app()->make("debugMode")->output ();
         }
-        $errDetail = "[ presty " . VERSION . " ]\r\n错误时间： " . date ('Y-m-d H:i:s') . "\r\n错误原因： $errStr\r\n错误网站： " . ($_SERVER['HTTP_HOST'] ?? "") . "\r\n错误文件： $errFile\r\n错误行数： $errLine\r\n运行状态： [\r\n" . implode ("\r\n", app()->has("hasBeenRun","",true)) . "\r\n]";
-        if (get_config('env.save_error_log')) {
+        $errDetail = "[ presty " . VERSION . " ]\r\n错误时间： " . date ('Y-m-d H:i:s') . "\r\n错误原因： $errStr\r\n错误网站： " . ($_SERVER['HTTP_HOST'] ?? "") . "\r\n错误文件： $errFile\r\n错误行数： $errLine\r\n运行状态： [\r\n" . implode ("\r\n", self::app()->has("hasBeenRun","",true)) . "\r\n]";
+        if (self::app()->newInstance("config")->get('env.save_error_log')) {
             \presty\Facade\Log::errorOut ($errDetail);
         }
-        if (get_config('env.save_running_log')) {
+        if (self::app()->newInstance("config")->get('env.save_running_log')) {
             $Detail = "[ presty " . VERSION . " ] \r\n 执行时间： " . date ('Y-m-d H:i:s') . "\r\n 运行结果： " . $errStr . " \r\n User-Agent： " . $_SERVER['HTTP_USER_AGENT'];
             \presty\Facade\Log::logOut ($Detail);
         }
-        if (get_config('env.send_error_log')) {
-            $to = get_config('env.developer_email');                                 // 邮件接收者
+        if (self::app()->newInstance("config")->get('env.send_error_log')) {
+            $to = self::app()->newInstance("config")->get('env.developer_email');                                 // 邮件接收者
             $subject = "[ presty " . VERSION . " ] Presty框架运行报错提示邮件";                // 邮件标题
             $message = $errDetail;                                                   // 邮件正文
             $from = "Presty框架";                                              // 邮件发送者
@@ -48,15 +48,15 @@ class Exception
             mail ($to, $subject, wordwrap($message,70), $headers);
         }
         $data = ["errFile" => $errFile,"errLine" => $errLine,"errCode" => $errCode,"errType" => $errType,"errStr" => $errStr,"errTrace" => $errTrace];
-        if(app()->runningInConsole()) self::renderToConsole ($data);
+        if(self::app()->runningInConsole()) self::renderToConsole ($data);
         else self::render($data)->send();
     }
 
     static public function render (array $data = [])
     {
-        $path = Template::getTemplatePath(get_config("env.run_exception_template","RunException"));
-        if(app()->make("request")->isJson()) $response = app()->make("response")->create (self::renderAsArray ($data), 'json', 500, [app ()->make("viewQueue")->getMainView ()]);
-        else $response = app()->make("response")->create (self::getRenderContent ($path,$data), 'html', 500, [app ()->make("viewQueue")->getMainView ()]);
+        $path = Template::getTemplatePath(self::app()->newInstance("config")->get("env.run_exception_template","RunException"));
+        if(self::app()->make("request")->isJson()) $response = self::app()->make("response")->create (self::renderAsArray ($data), 'json', 500, [app ()->make("viewQueue")->getMainView ()]);
+        else $response = self::app()->make("response")->create (self::getRenderContent ($path,$data), 'html', 500, [app ()->make("viewQueue")->getMainView ()]);
         return $response;
     }
 
@@ -68,8 +68,8 @@ class Exception
     public static function renderAsArray (array $data = [])
     {
         $result = [];
-        $request = app()->make("request");
-        if(env("system.debug_mode")){
+        $request = self::app()->make("request");
+        if(self::env("system.debug_mode")){
             if(!empty($data)){
 
                 $result = [
@@ -95,7 +95,7 @@ class Exception
             if(!empty($data)){
                 $result = [
                     "code" => $data["errCode"],
-                    "message" => lang()['something_wrong'],
+                    "message" => self::lang()['something_wrong'],
                 ];
             }
         }
@@ -108,5 +108,21 @@ class Exception
         extract ($data);
         include $path;
         return ob_get_clean ();
+    }
+
+    private static function app()
+    {
+        return \presty\Container::getInstance ()->getClass('app');
+    }
+
+    private static function lang ($index = "")
+    {
+        if(empty($index)) return self::app()->newInstance("lang")->lang();
+        else return self::app()->newInstance("lang")->self::lang()[$index];
+    }
+
+    private static function env ($name,$default = "")
+    {
+        return \presty\Env::get($name,$default);
     }
 }

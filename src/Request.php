@@ -100,7 +100,7 @@ class Request
 
         $this->get = $_GET;
 
-        $this->config = get_all_config();
+        $this->config = self::get_all_config();
 
         $this->env = $_ENV;
 
@@ -242,6 +242,16 @@ class Request
         }
 
         return false;
+    }
+
+    private static function get_all_config ()
+    {
+        return self::app()->newInstance("config")->getAll();
+    }
+
+    private static function app()
+    {
+        return \presty\Container::getInstance ()->getClass('app');
     }
 
 }

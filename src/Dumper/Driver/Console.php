@@ -60,7 +60,7 @@ class Console
     ];
 
     public function __construct () {
-        if(env ("system.debug_mode",false)) $this->verbosity = self::VERBOSITY_HIGH_VERBOSE;
+        if(self::env ("system.debug_mode",false)) $this->verbosity = self::VERBOSITY_HIGH_VERBOSE;
     }
 
     public function render ($content = "") {
@@ -123,5 +123,10 @@ class Console
     {
         $this->errorCode = $code;
         return $this;
+    }
+
+    private static function env ($name,$default = "")
+    {
+        return \presty\Env::get($name,$default);
     }
 }

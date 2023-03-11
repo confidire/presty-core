@@ -25,7 +25,7 @@ class Language
 
     public function __construct ($app = "")
     {
-        if(empty($app)) $app = app();
+        if(empty($app)) $app = $this->app();
         $this->app = $app;
         $this->config = $this->config ();
         $this->header = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
@@ -125,5 +125,10 @@ class Language
     public function lang ()
     {
         return $this->lang ?? false;
+    }
+
+    private function app()
+    {
+        return \presty\Container::getInstance ()->getClass('app');
     }
 }
