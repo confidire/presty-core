@@ -81,6 +81,12 @@ class Core extends Container
     protected $moduleGuidesPath = "";
 
     /**
+     * 运行模式
+     * @var string Web/Cli/Cli-test
+     */
+    protected $runningMode = "";
+
+    /**
      * 静态资源目录
      * @var string
      */
@@ -121,9 +127,6 @@ class Core extends Container
         'viewQueue'       => ViewQueue::class,
     ];
 
-    /**
-     *
-     */
     function __construct ()
     {
         //将自身注入到容器中，用于依赖注入
@@ -229,6 +232,24 @@ class Core extends Container
     public function runningInConsole(): bool
     {
         return php_sapi_name() === 'cli' || php_sapi_name() === 'phpdbg';
+    }
+
+    /**
+     * @return string
+     */
+    public function getRunningMode (): string
+    {
+        return $this->runningMode;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function setRunningMode ($mode): string
+    {
+        $this->runningMode = $mode;
+
+        return $this->runningMode == $mode;
     }
 
     /**

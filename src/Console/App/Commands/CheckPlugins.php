@@ -18,12 +18,12 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 
-class Version extends Command
+class CheckPlugins extends Command
 {
     protected function configure ()
     {
-        $this->setName ('version')
-            ->setDescription ('Prints framework version')
+        $this->setName ('plugin:update')
+            ->setDescription ('Update Plugin List')
             ->setHelp ('Demonstration of custom commands created by Symfony Console component.');
     }
 

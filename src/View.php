@@ -73,7 +73,7 @@ class View
         if (get_config('env.render_auto_clean',false) && $this->firstRender) ob_clean ();
         if (empty($content) || $content == "%self%") $content = $this->content;
         if (get_config('env.auto_xss_protect',false)) {
-            $antiXss = new \presty\format\AntiXSS\AntiXSS();
+            $antiXss = new \presty\Response\Driver\AntiXSS();
             $content = $antiXss->antiXss ($content);
         }
         if ($this->firstRender) $this->firstRender = false;

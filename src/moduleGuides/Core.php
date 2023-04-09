@@ -13,7 +13,8 @@
 
 namespace ModuleGuides;
 
-use \presty\facade\MiddleWare;
+use \presty\Facade\MiddleWare;
+
 class Core
 {
     public function register (\presty\Core $app)

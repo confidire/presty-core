@@ -14,6 +14,7 @@
 namespace presty;
 
 use PDO;
+use presty\exception\database\DatabaseArgumentMissing;
 use presty\exception\database\DatabaseException;
 
 class Database
@@ -23,7 +24,7 @@ class Database
     protected $primaryKey = "";
 
     //PDO驱动
-    protected $db = "";
+    protected $db = null;
 
     //操作的数据表
     protected $dbtable = "";
@@ -64,23 +65,31 @@ class Database
     //数据库驱动程序
     protected $dsn = "";
 
+    //结果集（在select中较为常用）
+    protected $resultSet;
+
+    //是否初次运行（防止每次执行SQL语句都运行一遍构造器函数）
+    protected $firstRun = true;
+
 
     function __construct ($dbtype = "mysql", $dbhost = "localhost", $dbname = "", $dbuser = "", $dbpass = "", $dbport = 3306, $dbprefix = "", $dbfile = "", $dbtable = "")
     {
-        app()->setArrayVar("hasBeenRun","database"," - Database_Init");
-        $this->dbtype = $dbtype;
-        $this->dbhost = $dbhost;
-        $this->dbname = $dbname;
-        $this->dbuser = $dbuser;
-        $this->dbpass = $dbpass;
-        $this->dbport = $dbport;
-        $this->dbprefix = $dbprefix;
-        $this->dbfile = $dbfile;
-        $this->dbtable = $dbtable;
-        if (get_config('database_auto_load',false)) {
-            $this->init ();
+        if ($this->firstRun) {
+            app ()->setArrayVar ("hasBeenRun", "database", " - Database_Init");
+            $this->dbtype = $dbtype;
+            $this->dbhost = $dbhost;
+            $this->dbname = $dbname;
+            $this->dbuser = $dbuser;
+            $this->dbpass = $dbpass;
+            $this->dbport = $dbport;
+            $this->dbprefix = $dbprefix;
+            $this->dbfile = $dbfile;
+            $this->dbtable = $dbtable;
+            if (get_config ('database_auto_load', false)) {
+                $this->init ();
+            }
+            $this->firstRun = false;
         }
-        return $this;
     }
 
     public function init ()
@@ -115,7 +124,6 @@ class Database
     public function getVars ($varName)
     {
         eval("\$returnText = \"$varName\";");
-        /** @var TYPE_NAME $returnText */
         return $returnText;
     }
 
@@ -224,7 +232,7 @@ class Database
     *@param fieldValue 字段值（Any）
     *返回操作结果（True|False）
     */
-    public function insert (?array $fieldName, ?array $fieldValue, $table = ""): bool
+    public function insert (?array $fieldName, ?array $fieldValue, $table = "")
     {
         foreach ($fieldValue as $key => $value) {
             if (is_string ($fieldValue)) {
@@ -239,7 +247,7 @@ class Database
             $fieldName = implode (', ', $fieldName);
         }
         $this->query ("INSERT INTO " . $table . "(" . $fieldName . ") VALUES(" . $fieldValue . ")");
-        return $this->operationResults;
+        return $this;
     }
 
     /*
@@ -248,13 +256,15 @@ class Database
     *@param where 受影响的行数（Any）
     *返回操作结果（True|False）
     */
-    public function delete ($where = "", $table = ""): bool
+    public function delete ($where = "", $table = "")
     {
+        $localWhere = "";
         if (empty($table)) $table = $this->dbtable;
-        if (empty($where)) $table = $this->whereClause;
-        if (!empty($where)) $where = $this->parseClause ($where);
+        if (empty($where)) $localWhere = $this->whereClause;
+        if(empty($where)) new DatabaseArgumentMissing('delete->\$where',__FILE__,__LINE__);
+        else $localWhere .= " ";
         $this->query ("DELETE FROM $table $where");
-        return $this->operationResults;
+        return $this;
     }
 
     /*
@@ -265,11 +275,12 @@ class Database
     *@param where 受影响的行数（Any）
     *返回操作结果（True|False）
     */
-    public function update (?array $key, ?array $value, $where = "", $table = ""): bool
+    public function update (?array $key, ?array $value, $where = "", $table = "")
     {
         $update = "UPDATE ";
+        $localWhere = "";
         if (empty($table)) $table = $this->dbtable;
-        if (empty($where)) $table = $this->whereClause;
+        if (empty($where)) $localWhere = " ".$this->whereClause;
         $update .= "$table ";
         if (is_array ($key)) {
             foreach ($key as $k => $v) {
@@ -282,10 +293,10 @@ class Database
         if (!empty($where)) {
             $update .= "SET $main " . $this->parseClause ($where);
         } else {
-            $update .= "SET $main";
+            $update .= "SET $main".$localWhere;
         }
         $this->query ($update);
-        return $this->operationResults;
+        return $this;
     }
 
     /*
@@ -295,19 +306,20 @@ class Database
     *@param table 数据表名（String）
     *返回查询结果（array）
     */
-    public function select ($column, $where = "", $table = ""): array
+    public function select ($column, $where = "", $table = "")
     {
         $select = "";
+        $localWhere = "";
         if (empty($table)) $table = $this->dbtable;
-        if (empty($table)) $table = $this->whereClause;
+        if (empty($where)) $localWhere = " ".$this->whereClause;
         if (!empty($where)) {
             $select = "SELECT $column FROM $table " . $this->parseClause ($where);
         } else {
-            $select = "SELECT $column FROM $table";
+            $select = "SELECT $column FROM $table".$localWhere;
         }
         $state = $this->db->query ($select);
-        $query = $state->fetch (PDO::FETCH_ASSOC);
-        return $query;
+        $this->resultSet = $state;
+        return $this;
     }
 
     /*
@@ -317,7 +329,26 @@ class Database
     */
     public function where ($where)
     {
-        $this->whereClause = $this->parseClause ($where);
+        $this->whereClause = $this->parseClause (["where"=>$where]);
         return $this;
+    }
+
+    public function fetch ($resultSet = [],$mode = PDO::FETCH_ASSOC)
+    {
+        if(empty($resultSet)) $resultSet = $this->resultSet;
+        if(empty($resultSet)) new DatabaseArgumentMissing('\$resultSet',__FILE__,__LINE__);
+        return $resultSet->fetch($mode);
+    }
+
+    public function fetchAll ($resultSet = [],$mode = PDO::FETCH_ASSOC)
+    {
+        if(empty($resultSet)) $resultSet = $this->resultSet;
+        if(empty($resultSet)) new DatabaseArgumentMissing('\$resultSet',__FILE__,__LINE__);
+        return $resultSet->fetchAll($mode);
+    }
+
+    public function result ()
+    {
+        return $this->operationResults;
     }
 }
