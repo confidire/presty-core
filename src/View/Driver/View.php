@@ -174,7 +174,7 @@ class View
                 return true;
             }
             else {
-                eval("\$res = $condition;");
+                eval("\$res = ".$condition.";");
                 if ($res) {
                     $this->fileContent = str_replace ($replace, $content, $this->fileContent);
                     return true;

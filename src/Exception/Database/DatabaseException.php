@@ -13,7 +13,7 @@
 
 namespace presty\exception\database;
 
-class DatabaseException
+class DatabaseException extends \Exception
 {
     public function __construct ($errorMessage = '',$errorFile = __FILE__,$errorLine = __LINE__,$errorCode = "EC100003")
     {

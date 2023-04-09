@@ -40,6 +40,8 @@ class Http
 
     public function runWithRouter (Request $request)
     {
+        if(!php_sapi_name () == "cli-server") $this->app->setRunningMode("web");
+        else $this->app->setRunningMode("cli-test");
         $router = $this->app->newInstance("router",true);
         $url = $router->init();
         $url = $router->setEngine()->getEngine()->parse($url);
@@ -49,6 +51,7 @@ class Http
 
     public function runWithoutRouter ()
     {
+        $this->app->setRunningMode("cli");
         $app = new Application();
         $pathPrefix = DIR."Console".DS."App".DS."Commands";
         scanFiles (DIR."Console/App/Commands",true,function($a, $v) use ($pathPrefix,$app){

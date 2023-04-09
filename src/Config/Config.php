@@ -17,6 +17,7 @@ const MAIN_VERSION = "1.0.0-dev-3";
 const VERSION = "1.0.0-a01a4060-9d89-49de-918a-a16bb3c33b26-dev-3";
 const APP_NAME = "Presty";
 const APP_SUB_NAME = "一款轻量级、易上手、完善化的后端PHP开发框架";
+const MINIMUM_PHP_VERSION = '7.3.0';
 
 
 //系统基础配置

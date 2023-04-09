@@ -18,7 +18,7 @@ class Database
     public function register (\presty\Core $app)
     {
         if(get_config ("env.database_auto_load")) {
-            $app->database = new \presty\Database(
+            $app->instance ("database", new \presty\Database(
                 env ('database.type', "mysql"),
                 env ('database.host', "127.0.0.1"),
                 env ('database.name', ""),
@@ -28,7 +28,8 @@ class Database
                 env ('database.prefix', ""),
                 env ('database.file', ""),
                 env ('database.table', "")
-            );
+            ));
+            $app->make("database")->init();
         }
     }
 }
