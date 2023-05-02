@@ -13,7 +13,7 @@
 
 
 namespace presty;
-use presty\exception\RunTimeException;
+use presty\Exception\RunTimeException;
 
 class Route {
 
@@ -211,41 +211,50 @@ class Route {
 
     public function parse ($url,$route,$urlMatchFunction = "",$urlMismatchFunction = "")
     {
-        if($url == "/index") $tempUrl = "/";
-        else $tempUrl = $url;
-        $path = parse_url ($tempUrl ?? $url);
+        $path = parse_url ($url);
         $info = array_filter (explode ("/", substr ($path['path'], 1)));
-        foreach ($route as $key => $value) {
-            $requestMethod = $value[0];
-            if(stripos ($requestMethod,"|")) $requestMethod = explode ("|",$requestMethod);
-            else $requestMethod = [$requestMethod];
-            $tempValue = $value[1];
-            $array = array_filter (explode ("/", $key));
-            if(empty($array)) $array[] = "/";
-            $combineKey = array_values (array_diff ($array, $info));
-            $continue = true;
-            $combine = "";
-            if($combineKey[0] == $path['path']) $url = $tempValue;
-            foreach ($combineKey as $k => $v) {
-                if (is_bool (strpos ($v, "`"))) $continue = false;
-                else $combineKey[$k] = substr ($v, 1);
-            }
-            if ($continue) {
-                $combineKey = array_values($combineKey);
-                $diff = array_values (array_diff ($info, $array));
-                $combine = [];
-                var_dump ($combineKey);
-                foreach ($combineKey as $k => $v) {
-                    $combine[] = "$v=$diff[$k]";
+        if(array_key_exists("query",$path)) $args = "?".$path["query"];  
+        else $args = "";
+        if(array_key_exists($path['path'],$route)){
+            $key = $path['path'];
+            $value = $route[$key];
+            if(app()->make("request")->method() == $value[0] || $value[0] == "*"){
+                if (filter_var($path, FILTER_VALIDATE_URL) !== false){
+                    $urlMatchFunction($value[1],$args);
+                }else{
+                    $urlMismatchFunction($value[1],$args);
                 }
-                $combine = "?".implode ("&",$combine);
             }
-            if($combineKey[0] == $path['path']) {
-                if (in_array ($_SERVER['REQUEST_METHOD'], $requestMethod) || in_array ("*", $requestMethod)) {
-                    if (filter_var ($tempValue, FILTER_VALIDATE_URL) !== false) {
-                        $urlMatchFunction($tempValue, $combine);
-                    } else {
-                        $urlMismatchFunction($tempValue, $combine);
+        }
+        
+        foreach ($route as $key => $value){
+            $isMatched = preg_match_all('/@([^\/]*)/', $key, $matches);
+            if($isMatched != 0){
+                $routeList = array_filter(explode("/",$key));
+                $valueList = array_filter(explode("/",$value[1]));
+                $originRoute = array_filter(explode("/",$path['path']));
+                $originValue = $valueList;
+                $vars = [];
+                $i = 0;
+                if(count($originRoute) != count($routeList)) continue;
+                foreach ($matches[0] as $match){
+                    $k = array_search($match,$routeList);
+                    if(!array_key_exists($k,$routeList) || !array_key_exists($k,$originRoute)) new RunTimeException("路由格式错误",__FILE__,__LINE__);
+                    if(in_array($match,$valueList)) $originValue[array_search($match,$originValue)] = $originRoute[$k];
+                    elseif(empty($args)) $args = "?".$matches[1][$i]."=".$originRoute[$k];
+                    else $args = $args."&".$matches[1][$i]."=".$originRoute[$k];
+                    $originRoute[$k] = $routeList[$k];
+                    $i++;
+                }
+                $originRoute = "/".implode("/",$originRoute);
+                $originValue = "/".implode("/",$originValue);
+                if($originRoute == $key){
+                    if(app()->make("request")->method() == $value[0] || $value[0] == "*"){
+                        if (filter_var($path, FILTER_VALIDATE_URL) !== false){
+                            $urlMatchFunction($originValue,$args);
+                        }else{
+                            $urlMismatchFunction($originValue,$args);
+                        }
                     }
                 }
             }

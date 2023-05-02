@@ -18,7 +18,6 @@ class Html extends Response
 {
 
     public function __construct ($content,$code = 200) {
-        debug_print_backtrace ();
         $this->init($content,$code);
     }
 }

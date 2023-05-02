@@ -125,7 +125,12 @@ class Router
         elseif(is_string ($pageContent)) $this->response = app()->make("Response")->create ($pageContent, get_config ('env.response_type', 'View'), 200, [app()->make("View")]);
         else $this->response = $pageContent;
         middleWare_getClassName ('afterRouter')->listening ([$query_file, $url]);
-        return $this->response->handle();
+        if(env('system_debug_mode')) {
+            return $this->response->handle ();
+        }else{
+            if(getPageCacheStatus () == 0) return $this->response->defaultHandle ();
+            else return $this->response->handle ();
+        }
     }
 }
 

@@ -71,6 +71,8 @@ class Database
     //是否初次运行（防止每次执行SQL语句都运行一遍构造器函数）
     protected $firstRun = true;
 
+    protected $queryRecords = [];
+
 
     function __construct ($dbtype = "mysql", $dbhost = "localhost", $dbname = "", $dbuser = "", $dbpass = "", $dbport = 3306, $dbprefix = "", $dbfile = "", $dbtable = "")
     {
@@ -134,9 +136,15 @@ class Database
     */
     public function query ($stmt): bool
     {
+        $this->queryRecords[] = $stmt;
         $state = $this->db->prepare ($stmt);
         $this->operationResults = $state->execute ();
         return $this->operationResults;
+    }
+
+    public function getQueryRecords (): array
+    {
+        return $this->queryRecords;
     }
 
     /*

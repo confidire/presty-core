@@ -53,6 +53,7 @@ class Response
             }
         }
         $this->header = getallheaders();
+        $this->header["content-type"] = $this->fileType."; charset=".$this->charset;
     }
 
     public function create ($data = '', $type = 'html', $code = 200,$args = [])
@@ -70,10 +71,38 @@ class Response
                 header($key . (!is_null($value) ? ':' . $value : ''));
             }
         }
+        if(env('system_debug_mode')) {
+            $request = app()->make("request");
+            $pageName = $request->requestPage ();
+            $pagePath = $request->requestPagePath ();
+            $pageStatus = getPageCacheStatus ();
+            switch ($pageStatus) {
+                case 1 :
+                    unlink (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix") . "-cache");
+                    $file = fopen (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix"), "w");
+                    fwrite ($file, $this->content);
+                    fclose ($file);
+                    break;
+                case 2 :
+                    if(!env('system_debug_mode')) {
+                        $file = fopen (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix"), "w");
+                        fwrite ($file, $this->content);
+                        fclose ($file);
+                        break;
+                    }
+            }
+        }
         echo $this->content;
     }
 
     public function handle ($content = "")
+    {
+        if(empty($content)) $content = $this->content;
+        $this->content = $content;
+        return $this;
+    }
+
+    public function defaultHandle ($content = "")
     {
         if(empty($content)) $content = $this->content;
         $this->content = $content;

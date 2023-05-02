@@ -266,7 +266,12 @@ class Core extends Container
         if(get_config("env.save_running_log",false)) {
             $time = date("Y-m-d H:i:s");
             $title = "[".$time." ".app()->make("request")->siteUrl()."]";
-            Log::logOut($title."\r\n".str_replace ("\\n","\r\n",app()->make("debugMode")->print()));
+            $data = app()->make("debugMode")->print();
+            $temp = "";
+            foreach ($data as $item){
+                $temp .= "\\n".implode ("\\n",$item);
+            }
+            Log::logOut($title."\r\n".str_replace ("\\n","\r\n",$temp));
         }
     }
 }

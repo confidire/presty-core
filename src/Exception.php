@@ -21,7 +21,7 @@ class Exception
     {
         if ((self::app()->newInstance("config")->get ('env.error_auto_clean') !== null && self::app()->newInstance("config")->get('env.error_auto_clean'))) {
             ob_clean ();
-        } elseif ((self::app()->newInstance("config")->get ('env.error_auto_clean') === null && self::app()->newInstance("config")->get('env.debug_mode'))) {
+        } elseif ((self::app()->newInstance("config")->get ('env.error_auto_clean') === null && env ('system.debug.mode', false))) {
             ob_clean ();
         }
         if (isset(self::lang()[$errCode]) && !empty($errTitle)) $errStr = self::lang()[$errCode] . " : ".$errTitle;

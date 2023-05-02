@@ -72,6 +72,10 @@ class Request
 
     protected $requestUrl = "";
 
+    protected $requestPage = "";
+
+    protected $requestPagePath = "";
+
     protected $mimeType = [
         'xml'   => 'application/xml,text/xml,application/x-xml',
         'json'  => 'application/json,text/x-json,application/jsonrequest,text/json',
@@ -188,6 +192,12 @@ class Request
         } else $arg = "";
     }
 
+    public function setRequestPage ($page,$fullPath)
+    {
+        $this->requestPage = $page;
+        $this->requestPagePath = $fullPath;
+    }
+
     public function server(string $name = '', string $default = '')
     {
         if (empty($name)) {
@@ -242,16 +252,6 @@ class Request
         }
 
         return false;
-    }
-
-    private static function get_all_config ()
-    {
-        return self::app()->newInstance("config")->getAll();
-    }
-
-    private static function app()
-    {
-        return \presty\Container::getInstance ()->getClass('app');
     }
 
 }

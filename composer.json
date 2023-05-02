@@ -1,5 +1,5 @@
 {
-  "name": "confidre/presty-core",
+  "name": "confidire/presty-core",
   "description": "presty framework core code",
   "require": {
     "php": ">=7.3",

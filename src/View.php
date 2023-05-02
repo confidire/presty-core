@@ -110,13 +110,29 @@ class View
         $allowToLoad = false;
         $content = "";
         $app = array_filter (explode ("/", $path))[0];
+        $path = str_replace ("/",DS,$path);
         if (file_exists (APP . $app . ".php")) {
             $allowToLoad = empty($result = require_once (APP . $app . ".php")) || $result;
         } else {
             $allowToLoad = true;
         }
-        $path = APP . $path . get_config ('env.file_suffix', '.html');
-        if ($allowToLoad) $content = file_get_contents ($path);
+        $fullPath = APP . $path . get_config ('env.file_suffix', '.html');
+        app()->make("request")->setRequestPage($path,$fullPath);
+        if ($allowToLoad) {
+            if(!env('system_debug_mode')) {
+                if (file_exists (CACHE . "viewCache" . DS . $path . "-" . md5_file ($fullPath) . get_config ("env.template_suffix"))) {
+                    $content = file_get_contents (CACHE . "viewCache" . DS  . $path . "-" . md5_file ($fullPath) . get_config ("env.template_suffix"));
+                } else {
+                    $content = file_get_contents ($fullPath);
+                    if(!is_dir (CACHE . "viewCache" . DS  . dirname ($path))){
+                        mkdir (CACHE . "viewCache" . DS  . dirname ($path));
+                    }
+                    $cacheFile = fopen(CACHE . "viewCache" . DS  . $path . "-" . md5_file ($fullPath) . get_config ("env.template_suffix")."-cache","w");
+                    fwrite ($cacheFile,$content);
+                    fclose ($cacheFile);
+                }
+            } else $content = file_get_contents ($fullPath);
+        }
         else $content = file_get_contents (TEMPLATES . get_config('env.access_denied_page') . get_config('template_suffix'));
         $response = app()->make("Response")->create ("", get_config ('env.response_type', 'View'), 200, [$this]);
         $response->setContent($content);

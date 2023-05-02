@@ -395,3 +395,19 @@ if (!function_exists ("getPublicPath")) {
         return app()->PublicPath();
     }
 }
+
+if (!function_exists ("getPageCacheStatus")) {
+    function getPageCacheStatus ()
+    {
+        $request = app()->make("request");
+        $pageName = $request->requestPage();
+        $pagePath = $request->requestPagePath();
+        if(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix"))){
+            return 0;
+        }
+        elseif(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix")."-cache")) {
+            return 1;
+        }
+        else return 2;
+    }
+}

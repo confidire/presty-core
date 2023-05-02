@@ -40,7 +40,7 @@ class Http
 
     public function runWithRouter (Request $request)
     {
-        if(!php_sapi_name () == "cli-server") $this->app->setRunningMode("web");
+        if(php_sapi_name () != "cli-server") $this->app->setRunningMode("web");
         else $this->app->setRunningMode("cli-test");
         $router = $this->app->newInstance("router",true);
         $url = $router->init();
