@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------
  * | Presty Framework
  * +----------------------------------------------------------------------
- * | Copyright (c) 20021~2022 Tomanday All rights reserved.
+ * | Copyright (c) 20021~2022 Confidire All rights reserved.
  * +----------------------------------------------------------------------
  * | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
  * +----------------------------------------------------------------------
@@ -48,6 +48,7 @@ class View
         $this->parseModel ();
         $this->parseFunction();
         $this->parseIf ();
+        $this->parseForeach ();
         middleWare_getClassName ('afterParseFile')->listening ([$this->fileContent]);
         return $this->fileContent;
     }
@@ -165,6 +166,36 @@ class View
             }
         }
     }
+    
+    protected function parseForeach ()
+    {
+        if(preg_match_all ('/'.$this->templateEnginePrefix.'foreach(\s\S*)*'.$this->templateEngineSuffix.'([\s\S]+?)'.$this->templateEnginePrefix.'\/foreach'.$this->templateEngineSuffix.'/',  ($this->fileContent), $matches)) {
+                $execute = trim(str_replace(array("\r","\n","\r\n"),"",end($matches)[0]));
+            $matches = $matches[0];
+            foreach ($matches as $item){
+                $this->fileContent = str_replace($item,"",$this->fileContent);
+                $conditionNum = preg_match_all ('/'.'\s\S*=[^}\s]*'.'/', $item, $conditions);
+                $conditions = $conditions[0];
+                $conditionsList = [];
+                foreach ($conditions as $condition){
+                    $condition = explode("=",$condition);
+                    $conditionsList[trim($condition[0])] = trim($condition[1]);
+                }
+                $loop = app()->has($conditionsList["loop"],"",true);
+                if(array_key_exists("key",$conditionsList)) $execute = str_replace("$".$conditionsList["key"],"\$key",$execute);
+                $execute = str_replace("$".$conditionsList["value"],"\$value",$execute);
+                if(array_key_exists("key",$conditionsList)){
+                    foreach ($loop as $key => $value){
+                        eval($execute);
+                    }
+                }else{
+                    foreach ($loop as $value){
+                        eval($execute);
+                    }
+                }
+            }
+        }
+    }
 
     protected function parseIfByManual ($condition,$content,$replace,$replaceEmpty = false): bool
     {
@@ -223,10 +254,12 @@ class View
             if (count($args) > 0) {
                 $this->callFunction ($args);
             }
-            if(!empty($this->subscript))
+            if(!empty($this->subscript)){
                 foreach ($this->subscript as $item) {
                     $this->replaceText = $this->replaceText[$item];
                 }
+            }
+            $this->subscript = [];
             $this->fileContent = str_replace ($origin, $this->replaceText, $this->fileContent);
         }
     }

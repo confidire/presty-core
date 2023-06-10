@@ -11,21 +11,23 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty;
+namespace presty\Console\App\Commands\Make;
 
-class Redirect
+use presty\Console\App\Commands\Make;
+
+class Model extends Make
 {
-    public function redirect ($targetUrl, $remember = false)
+    protected $fileType = "model";
+
+    protected function configure ()
     {
-        ob_end_clean ();
-        if ($remember) {
-            setcookie ("lastRedirectUrl", $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-        }
-        header ("Location: " . $targetUrl);
+        parent::configure ();
+        $this->setName ('make:model');
     }
 
-    public function backoff ($remember = false)
+    protected function getStub(): string
     {
-        $this->redirect ($_COOKIE['lastRedirectUrl'], $remember);
+        $stubPath = __DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR;
+        return $stubPath . 'model.stub';
     }
 }

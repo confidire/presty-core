@@ -10,7 +10,8 @@
     "psr/cache": "^1.0"
   },
   "require-dev": {
-    "ext-json": "*"
+    "ext-json": "*",
+    "phpunit/phpunit": "^7.0"
   },
   "license": "Apache-2.0",
   "autoload": {
@@ -21,7 +22,7 @@
   },
   "authors": [
     {
-      "name": "Upstair",
+      "name": "Condifidore",
       "email": "790455692@qq.com"
     }
   ],

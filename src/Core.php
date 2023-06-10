@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------
  * | Presty Framework
  * +----------------------------------------------------------------------
- * | Copyright (c) 20021~2022 Tomanday All rights reserved.
+ * | Copyright (c) 20021~2022 Confidire All rights reserved.
  * +----------------------------------------------------------------------
  * | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
  * +----------------------------------------------------------------------
@@ -243,13 +243,14 @@ class Core extends Container
     }
 
     /**
-     * @return boolean
+     * @param $mode
+     * @return Core
      */
-    public function setRunningMode ($mode): string
+    public function setRunningMode ($mode): Core
     {
         $this->runningMode = $mode;
 
-        return $this->runningMode == $mode;
+        return $this;
     }
 
     /**

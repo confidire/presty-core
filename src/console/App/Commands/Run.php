@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------
  * | Presty Framework
  * +----------------------------------------------------------------------
- * | Copyright (c) 20021~2022 Tomanday All rights reserved.
+ * | Copyright (c) 20021~2022 Confidire All rights reserved.
  * +----------------------------------------------------------------------
  * | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
  * +----------------------------------------------------------------------
@@ -42,7 +42,7 @@ class Run extends Command
         $io = new SymfonyStyle($input, $output);
         $bar = new ProgressBar($output,3);
         $bar->setMessage('System Self-test...');
-        $bar->setFormat("%message%\r\n%current% [%bar%]  %percent%%");
+        $bar->setFormat("%message%\r\n%current%/%max% [%bar%]  %percent%%");
         $bar->start();
         sleep(1);
         $bar->setMessage('Checking PHP version...');

@@ -11,25 +11,27 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\Console\App\Commands;
+namespace presty\Console\App\Commands\Make;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use presty\Console\App\Commands\Make;
 use Symfony\Component\Console\Input\InputArgument;
 
-class CheckPlugins extends Command
+class Controller extends Make
 {
+    protected $fileType = "controller";
+
     protected function configure ()
     {
-        $this->setName ('plugin:update')
-            ->setDescription ('Update Plugin List')
-            ->setHelp ('Demonstration of custom commands created by Symfony Console component.');
+        parent::configure ();
+        $this->setName ('make:controller')
+             ->addArgument('empty', InputArgument::OPTIONAL, "Make an empty controller class");
     }
 
-    protected function execute (InputInterface $input, OutputInterface $output)
+    protected function getStub(): string
     {
-        $output->writeln (sprintf ('v%s', VERSION));
-        return 0;
+        $stubPath = __DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR;
+
+        if($this->input->getArgument('empty')) return $stubPath . 'controller.empty.stub';
+        return $stubPath . 'controller.stub';
     }
 }

@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------
  * | Presty Framework
  * +----------------------------------------------------------------------
- * | Copyright (c) 20021~2022 Tomanday All rights reserved.
+ * | Copyright (c) 20021~2022 Confidire All rights reserved.
  * +----------------------------------------------------------------------
  * | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
  * +----------------------------------------------------------------------
@@ -180,27 +180,63 @@ class Database
     }
 
     /*
-    *展开子句
+    *展开where子句
     *@param where 要解析的句式（Array）
     *返回完整句式（String）
     */
-    protected function implodeWhere ($data): string
+    protected function implodeWhere ($datas): string
     {
         $result = [];
         $condition = 'AND';
         $relation = "=";
-        if (count ($data) != count ($data, COUNT_RECURSIVE)) {
-            $condition = " " . array_search (current ($data), $data) . " ";
-            $data = current ($data);
+        foreach ($datas as $key => $data){
+            if(!is_array($data)) {
+                $data = $datas;
+            }
+            else{
+                $condition = $key;
+            }
+            foreach ($data as $key => $value) {
+                if (is_string ($value)) $value = $this->quotes ($value);
+                $key = $this->quotesKey ($key);
+                $isMatched = preg_match ('/\[[<>=]{1,2}\]/', $key, $matches);
+                if ($isMatched != 0) $relation = preg_replace ('/(\[)(.+?)(\])/', '$2', $matches)[0];
+                $key = str_replace ("[" . $relation . "]", "", $key);
+                $result[count ($result)] = $key . $relation . $value;
+                $relation = "=";
+            }
+            $clause = implode (" ".$condition." ", $result) . " ";
         }
-        foreach ($data as $key => $value) {
-            if (is_string ($value)) $value = $this->db->quote ($value);
-            $isMatched = preg_match ('/\[.+?\]/', $key, $matches);
-            if ($isMatched != 0) $relation = preg_replace ('/(\[)(.+?)(\])/', '$2', $matches)[0];
-            $key = str_replace ("[" . $relation . "]", "", $key);
-            $result[count ($result)] = $key . $relation . $value;
+        $clause = "WHERE " . $clause; 
+        return $clause;
+    }
+    
+    /*
+    *展开Having子句
+    *@param where 要解析的句式（Array）
+    *返回完整句式（String）
+    */
+    protected function implodeHaving ($datas): string
+    {
+        $result = [];
+        $condition = 'AND';
+        $relation = "=";
+        foreach ($datas as $data){
+            if (count ($datas) != count ($datas, COUNT_RECURSIVE)) {
+                $condition = " " . array_search ($data, $datas) . " ";
+            }
+            foreach ($data as $key => $value) {
+                if (is_string ($value)) $value = $this->quotes ($value);
+                $key = $this->quotesKey ($key);
+                $isMatched = preg_match ('/(\[)([<>=]{1,2})(\])/', $key, $matches);
+                if ($isMatched != 0) $relation = preg_replace ('/(\[)([<>=]{1,2})(\])/', '$2', $matches)[0];
+                $key = str_replace ("[" . $relation . "]", "", $key);
+                $result[count ($result)] = $key . $relation . $value;
+                $relation = "=";
+            }
+            $clause = implode ($condition, $result) . " ";
         }
-        $clause = "WHERE " . implode ($condition, $result) . " ";
+        $clause = "HAVING " . $clause; 
         return $clause;
     }
 
@@ -212,9 +248,9 @@ class Database
     protected function parseClause ($where): string
     {
         $clause = '';
-        $whereresult = $groupbyresult = $orderresult = $havingresult = $limitresult = $likeresult = $matchresult = $varsresult = "";
+        $whereresult = $groupbyresult = $orderresult = $havingresult = $limitresult = $likeresult = $varsresult = $escaperesult = "";
         $conditions = array_diff_key ($where, array_flip (
-            ['GROUPBY', 'ORDER', 'HAVING', 'LIMIT', 'LIKE', 'MATCH', 'VARS']
+            ['GROUPBY', 'ORDERBY', 'HAVING', 'LIMIT', 'LIKE', 'VARS','ESCAPE']
         ));
         if (!empty($conditions)) {
             if (isset($conditions['WHERE'])) {
@@ -224,12 +260,33 @@ class Database
             }
         }
         if (isset($where['GROUPBY'])) {
-            $groupbyresult = ' GROUP BY ' . $where['GROUPBY'] . " ";
+            $groupbyresult = ' GROUP BY ' . implode(",",$where['GROUPBY']) . " ";
+        }
+        if (isset($where['ORDERBY'])) {
+            $clause = "";
+            foreach ($where["ORDERBY"] as $key => $item){
+                $key = $this->quotesKey ($key);
+                $clause .= "," . $key . " " . $item . " ";
+            }
+            $groupbyresult = ' ORDER BY ' . substr($clause,1);
+        }
+        if (isset($where['HAVING'])) {
+            $havingresult = $this->implodeHaving($where["HAVING"]);
+        }
+        if (isset($where['LIMIT'])) {
+            $limitresult = " LIMIT " . implode(",",$where["LIMIT"]);
+        }
+        if (isset($where['LIKE'])) {
+            $likeresult = " LIKE " . $this->quotes ($where['LIKE']) . " ";
+            if (isset($where['ESCAPE'])) {
+                $escaperesult = " ESCAPE " . $this->quotes ($where['ESCAPE']) . " ";
+                $likeresult .= $escaperesult;
+            }
         }
         if (isset($where['VARS'])) {
             $varsresult = implode (" ", $where['VARS']) . " ";
         }
-        $result = $whereresult . $groupbyresult . $orderresult . $havingresult . $limitresult . $likeresult . $matchresult . $varsresult;
+        $result = $whereresult . $groupbyresult . $orderresult . $havingresult . $limitresult . $likeresult . $varsresult;
         return $result;
     }
 
@@ -244,7 +301,7 @@ class Database
     {
         foreach ($fieldValue as $key => $value) {
             if (is_string ($fieldValue)) {
-                $fieldValue[$key] = $this->db->quote ($value);
+                $fieldValue[$key] = $this->quotes ($value);
             }
         }
         if (empty($table)) $table = $this->dbtable;
@@ -337,8 +394,22 @@ class Database
     */
     public function where ($where)
     {
-        $this->whereClause = $this->parseClause (["where"=>$where]);
+        $this->whereClause = $this->parseClause (["WHERE"=>$where]);
         return $this;
+    }
+    
+    public function quotes ($string)
+    {
+        $isMatched = preg_match ('/\[func\]/', $string, $matches);
+        if($isMatched != 0) return str_replace("[func]","",$string);
+        else return $this->db->quote($string);
+    }
+    
+    public function quotesKey ($string)
+    {
+        $isMatched = preg_match ('/\[func\]/', $string, $matches);
+        if($isMatched != 0) return str_replace("[func]","",$string);
+        else return $string;
     }
 
     public function fetch ($resultSet = [],$mode = PDO::FETCH_ASSOC)

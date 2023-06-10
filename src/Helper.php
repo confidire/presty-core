@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------
  * | Presty Framework
  * +----------------------------------------------------------------------
- * | Copyright (c) 20021~2022 Tomanday All rights reserved.
+ * | Copyright (c) 20021~2022 Confidire All rights reserved.
  * +----------------------------------------------------------------------
  * | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
  * +----------------------------------------------------------------------
@@ -39,8 +39,8 @@ if (!function_exists ("container_newInstance")) {
     }
 }
 
-if (!function_exists ("container_make")) {
-    function container_make ($key)
+if (!function_exists ("app_make")) {
+    function app_make ($key)
     {
         return app()->make($key);
     }
@@ -49,91 +49,91 @@ if (!function_exists ("container_make")) {
 if (!function_exists ("session_get")) {
     function session_get ($sessionName,$sessionValue = "")
     {
-        return Session::get($sessionName,$sessionValue);
+        return app()->make("session")->get($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("session_set")) {
     function session_set ($sessionName,$sessionValue)
     {
-        return Session::set($sessionName,$sessionValue);
+        return app()->make("session")->set($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("session_unset")) {
     function session_unset ($sessionName)
     {
-        return Session::unset($sessionName);
+        return app()->make("session")->unset($sessionName);
     }
 }
 
 if (!function_exists ("session_des")) {
     function session_des ($sessionName)
     {
-        return Session::des($sessionName);
+        return app()->make("session")->des($sessionName);
     }
 }
 
 if (!function_exists ("session_isset")) {
     function session_isset ($sessionName,$sessionValue = "")
     {
-        return Session::isset($sessionName,$sessionValue);
+        return app()->make("session")->isset($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("session_empty")) {
     function session_empty ($sessionName)
     {
-        return Session::empty($sessionName);
+        return app()->make("session")->empty($sessionName);
     }
 }
 
 if (!function_exists ("cookie_get")) {
     function cookie_get ($sessionName,$sessionValue = "")
     {
-        return Cookie::get($sessionName,$sessionValue);
+        return app()->make("cookie")->get($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("cookie_set")) {
     function cookie_set ($cookieName, $cookieValue, $expire = 0, $path = "", $domain = "",$secure = false,$httponly = false)
     {
-        return Cookie::set($cookieName,$cookieValue,$expire,$path,$domain,$secure,$httponly);
+        return app()->make("cookie")->set($cookieName,$cookieValue,$expire,$path,$domain,$secure,$httponly);
     }
 }
 
 if (!function_exists ("cookie_des")) {
     function cookie_des ($cookieName)
     {
-        return Cookie::des($cookieName);
+        return app()->make("cookie")->des($cookieName);
     }
 }
 
 if (!function_exists ("cookie_isset")) {
     function cookie_isset ($cookieName,$cookieValue = "")
     {
-        return Cookie::isset($cookieName,$cookieValue);
+        return app()->make("cookie")->isset($cookieName,$cookieValue);
     }
 }
 
 if (!function_exists ("cookie_empty")) {
     function cookie_empty ($cookieName)
     {
-        return Cookie::empty($cookieName);
+        return app()->make("cookie")->empty($cookieName);
     }
 }
 
 if (!function_exists ("redirect")) {
     function redirect ($url = "", $remember = false)
     {
-        return Redirect::redirect ($url, $remember);
+        return app()->make("redirect")->redirect ($url, $remember);
     }
 }
 
 if (!function_exists ("redirect_backoff")) {
     function redirect_backoff ($remember = false)
     {
-        return Redirect::backoff ($remember);
+        return app()->make("redirect")->backoff ($remember);
     }
 }
 
@@ -161,7 +161,7 @@ if (!function_exists ("container_has")) {
 if (!function_exists ("middleWare_listening")) {
     function middleWare_listening ($className = "", $functionName = "", $args = "")
     {
-        return \presty\Facade\MiddleWare::listening ($className, $functionName, $args);
+        return app()->make("middleWare")->listening ($className, $functionName, $args);
     }
 }
 
@@ -170,7 +170,7 @@ if (!function_exists ("middleWare_getClassName")) {
     {
         require_once DIR."MiddleWare.php";
         $hook = new presty\MiddleWare();
-        return \presty\Facade\MiddleWare::getClassName ($hookName, $returnString);
+        return app()->make("middleWare")->getClassName ($hookName, $returnString);
     }
 }
 
@@ -239,7 +239,7 @@ if (!function_exists ("env")) {
 if (!function_exists ("model")) {
     function model ($modelClass)
     {
-        return \Model::model($modelClass);
+        return app()->make("model")->model($modelClass);
     }
 }
 
@@ -297,12 +297,12 @@ if (!function_exists ("scanFiles")) {
     {
         $temp = scandir ($dir);
         foreach ($temp as $v) {
-            $a = $dir . $v;
+            $a = $dir  . DS . $v;
             if (is_dir ($a)) {
                 if ($v == '.' || $v == '..') {
                     continue;
                 }
-                if($deepScan)scanDir ($a,$deepScan,$function);
+                if($deepScan) scanFiles ($a,$deepScan,$function);
                 else continue;
             } else {
                 $fileFullPath = $a;
@@ -402,6 +402,7 @@ if (!function_exists ("getPageCacheStatus")) {
         $request = app()->make("request");
         $pageName = $request->requestPage();
         $pagePath = $request->requestPagePath();
+        if(empty($pagePath)) return 0;
         if(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix"))){
             return 0;
         }
@@ -409,5 +410,106 @@ if (!function_exists ("getPageCacheStatus")) {
             return 1;
         }
         else return 2;
+    }
+}
+
+if(!function_exists("checkArgs")){
+    function checkArgs($args){
+        if(is_array($args)){
+            foreach ($args as $arg){
+                checkArgs($arg);
+            }
+        }else{
+            if(!array_key_exists($args,app()->make("request")->controllerArgs())) die(json_encode(["code" => -101, "msg" => "Insufficient parameters", "data" => []],JSON_UNESCAPED_UNICODE));
+        }
+    }
+}
+
+if(!function_exists("createDs")){
+    function createDs($salt){
+        $now = time();
+        $prefix = "r=".$now."q=".md5($salt).$salt;
+        $secret = md5(md5($prefix."s".md5(md5($prefix).$salt)).$salt);
+        return $now.".".rand(100000,999999).".".$secret;
+    }
+}
+
+
+if(!function_exists("curl_send")){
+    function curl_send($url,$method = "GET",$data = array())
+    {
+        $ds = createDs(get_config("verify.ds.salt"));
+        header("DS:".$ds);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+}
+
+if(!function_exists("curl_get")){
+    function curl_get($url,$data = array())
+    {
+        $ds = createDs(get_config("verify.ds.salt"));
+        header("DS:".$ds);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+}
+
+if(!function_exists("curl_post")){
+    function curl_post($url,$data = array())
+    {
+        $ds = createDs(get_config("verify.ds.salt"));
+        header("DS:".$ds);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+}
+
+if(!function_exists("AESencrypt")){
+    function AESencrypt($data)
+    {
+        if ($data== null || empty($data)) {
+            return $data;
+        }
+        $key = "71d9003912ad4a91";//秘钥必须为：8/16/32位
+        $iv = "a719bbe6c0c4f7f9";
+        $base64_str = base64_encode(json_encode($data));
+        $encrypted = openssl_encrypt($base64_str, "aes-128-cbc", $key, OPENSSL_ZERO_PADDING, $iv);
+        return base64_encode($encrypted);
+    }
+}
+
+if(!function_exists("AESdecrypt")){
+    function AESdecrypt($data)
+    {
+        if ($data== null || empty($data)) {
+            return $data;
+        }
+        $encrypted = base64_decode($data);
+        $key = "71d9003912ad4a91";//秘钥必须为：8/16/32位
+        $iv = "a719bbe6c0c4f7f9";
+        $decrypted = openssl_decrypt($encrypted, 'aes-128-cbc', $key, OPENSSL_ZERO_PADDING, $iv);
+        return json_decode(base64_decode($decrypted), true);
     }
 }

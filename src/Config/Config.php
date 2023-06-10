@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------
  * | Presty Framework
  * +----------------------------------------------------------------------
- * | Copyright (c) 20021~2022 Tomanday All rights reserved.
+ * | Copyright (c) 20021~2022 Confidire All rights reserved.
  * +----------------------------------------------------------------------
  * | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
  * +----------------------------------------------------------------------
@@ -13,8 +13,8 @@
 
 //框架参数配置
 const FRAME_WORK_NAME = 'Presty';
-const MAIN_VERSION = "1.0.0-dev-5";
-const VERSION = "1.0.0-9defa0f3-0093-42a8-b004-0be9730a69c5-dev-5";
+const MAIN_VERSION = "1.0.0-dev-6";
+const VERSION = "1.0.0-475993d2-ee60-42a6-ad8c-893956902866-dev-6";
 const APP_NAME = "Presty";
 const APP_SUB_NAME = "一款轻量级、易上手、完善化的后端PHP开发框架";
 const MINIMUM_PHP_VERSION = '7.3.0';
@@ -24,7 +24,7 @@ const MINIMUM_PHP_VERSION = '7.3.0';
 if (php_sapi_name () != "cli" && php_sapi_name() != 'phpdbg') define ('ROOT', dirname ($_SERVER["DOCUMENT_ROOT"]) . DIRECTORY_SEPARATOR);
 else define ('ROOT', dirname (__DIR__,5) . DIRECTORY_SEPARATOR);
 const DS = DIRECTORY_SEPARATOR;
-const DIR = ROOT  . "vendor" . DS . "upstair" . DS . "presty-core" . DS . "src" . DS;
+const DIR = ROOT  . "vendor" . DS . "confidire" . DS . "presty-core" . DS . "src" . DS;
 const APP = ROOT . 'app' . DS;
 const PUBLICDIR = ROOT . 'public' . DS;
 const STATICDIR = PUBLICDIR . 'static' . DS;

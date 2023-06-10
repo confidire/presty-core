@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------
  * | Presty Framework
  * +----------------------------------------------------------------------
- * | Copyright (c) 20021~2022 Tomanday All rights reserved.
+ * | Copyright (c) 20021~2022 Confidire All rights reserved.
  * +----------------------------------------------------------------------
  * | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
  * +----------------------------------------------------------------------
@@ -54,10 +54,16 @@ class Http
         $this->app->setRunningMode("cli");
         $app = new Application();
         $pathPrefix = DIR."Console".DS."App".DS."Commands";
-        scanFiles (DIR."Console/App/Commands",true,function($a, $v) use ($pathPrefix,$app){
+        scanFiles (DIR."Console" . DS . "App" . DS . "Commands",true,function($a, $v) use ($pathPrefix,$app){
+            if(is_bool (stripos ($v,".php"))) return true;
             $a = str_replace ("/",DS,$a);
-            $a = "presty\Console\App\Commands\\".str_replace (DS,"\\",str_replace (".php","",str_replace ($pathPrefix,"",$a)));
-            $app->add (new $a());
+            $a = "presty\Console\App\Commands".str_replace (DS,"\\",str_replace (".php","",str_replace ($pathPrefix,"",$a)));
+            try {
+                $class = new \ReflectionClass($a);
+            } catch (\ReflectionException $e) {
+                new RunTimeException($e->getMessage (),$e->getFile (),$e->getLine ());
+            }
+            if(!$class->isAbstract() && $class->isInstantiable()) $app->add ($class->newInstance());
         });
         try {
             $app->run ();
