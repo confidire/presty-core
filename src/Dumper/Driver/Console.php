@@ -13,7 +13,7 @@
 
 namespace presty\Dumper\Driver;
 
-use presty\exception\InvalidArgumentException;
+use presty\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Console

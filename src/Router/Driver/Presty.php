@@ -12,7 +12,7 @@
  */
 
 namespace presty\Router\Driver;
-use presty\exception\UrlSyntaxException;
+use presty\Exception\UrlSyntaxException;
 use presty\Facade\Router;
 use presty\Facade\Route;
 use presty\RouterInterface;
@@ -50,8 +50,8 @@ class Presty extends Router implements RouterInterface
             $queryArray = array_filter (explode ("&", $query));
             $query = [];
             foreach ($queryArray as $key => $value) {
-                $array = array_filter (explode ("=", $value));
-                $query[$array[0]] = $array[1];
+                $array = array_filter (explode ("=", $value),function ($val){return ($val === '' || $val === null) ? false : true;});
+                $query[$array[0]] = urldecode($array[1]);
             }
         }
         $returnInfo["vars"] = array_merge ($returnInfo["vars"], $query);

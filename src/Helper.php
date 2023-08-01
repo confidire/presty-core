@@ -280,8 +280,8 @@ if (!function_exists ("parseUrl")) {
     }
 }
 
-if (!function_exists ("varDumpArray")) {
-    function varDumpArray ($array,$formatOutput = true)
+if (!function_exists ("dumpArray")) {
+    function dumpArray ($array,$formatOutput = true)
     {
         if($formatOutput){
             echo "<pre>";

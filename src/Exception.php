@@ -47,7 +47,7 @@ class Exception
             $headers = "From:" . $from;                                              // 头部信息设置
             mail ($to, $subject, wordwrap($message,70), $headers);
         }
-        $data = ["errFile" => $errFile,"errLine" => $errLine,"errCode" => $errCode,"errType" => $errType,"errStr" => $errStr,"errTrace" => $errTrace];
+        $data = self::renderAsArray(["errFile" => $errFile,"errLine" => $errLine,"errCode" => $errCode,"errType" => $errType,"errStr" => $errStr,"errTrace" => $errTrace]);
         if(self::app()->runningInConsole()) self::renderToConsole ($data);
         else self::render($data)->send();
     }
@@ -55,7 +55,7 @@ class Exception
     static public function render (array $data = [])
     {
         $path = Template::getTemplatePath(self::app()->newInstance("config")->get("env.run_exception_template","RunException"));
-        if(self::app()->make("request")->isJson()) $response = self::app()->make("response")->create (self::renderAsArray ($data), 'json', 500, [app ()->make("viewQueue")->getMainView ()]);
+        if(self::app()->make("request")->isJson()) $response = self::app()->make("response")->create (self::renderAsArray ($data), 'json', 500)->handle();
         else $response = self::app()->make("response")->create (self::getRenderContent ($path,$data), 'html', 500, [app ()->make("viewQueue")->getMainView ()]);
         return $response;
     }
@@ -69,14 +69,14 @@ class Exception
     {
         $result = [];
         $request = self::app()->make("request");
-        if(self::env("system.debug_mode")){
+        if(self::env("system.debug_mode",false)){
             if(!empty($data)){
-
                 $result = [
                     "code" => $data["errCode"],
                     "message" => $data["errStr"],
                     "file" => $data["errFile"],
                     "line" => $data["errLine"],
+                    "type" => $data["errType"],
                     "trace" => $data["errTrace"],
                     "request" => [
                         "requestMethod" => $request->method(),

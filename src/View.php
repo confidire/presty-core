@@ -13,7 +13,7 @@
 
 namespace presty;
 
-use presty\exception\NotFoundException;
+use presty\Exception\NotFoundException;
 
 class View
 {

@@ -13,6 +13,9 @@
 
 namespace presty\View\Driver;
 
+use PhpParser\Node\Expr\Isset_;
+use presty\Exception\NotFoundException;
+
 class View
 {
     public $fileContent = "";
@@ -59,7 +62,30 @@ class View
 
     protected function parseInclude ()
     {
-        $isMatched = preg_match_all ('/('.$this->templateEnginePrefix.'include=)(.)*?('.$this->templateEngineSuffix.')/', $this->fileContent, $matches);
+        $isMatched = preg_match_all ('/'.$this->templateEnginePrefix.'include(.*?)'.$this->templateEngineSuffix.'/', $this->fileContent, $matches);
+        if($isMatched != 0) {
+            if(is_dir (app()->getAppPath."config")) $viewMapping = require app()->getAppPath."config".DS.get_config ("view.view_mapping_config_file_name","ViewMapping").".php";
+            else $viewMapping = [];
+            foreach ($matches[0] as $key => $value) {
+                $args = $matches[1][$key];
+                $args = array_values (array_filter (explode (" ",$args)));
+                foreach ($args as $k => $v){
+                    $v = explode ("=",$v);
+                    $args[$v[0]] = $v[1];
+                    unset($args[$k]);
+                }
+                $content = "";
+                if(isset($viewMapping[$args["name"]])){
+                    if(substr ($viewMapping[$args["name"]],0,1) == "/") $viewMapping[$args["name"]] = substr ($viewMapping[$args["name"]],1);
+                    $content = file_get_contents (app()->getAppPath.$viewMapping[$args["name"]].get_config ("env.file_suffix",".html"));
+                }
+                else if(file_exists (app()->getAppPath.$args["name"].get_config ("env.file_suffix",".html"))){
+                    $content = file_get_contents (app()->getAppPath.$args["name"].get_config ("env.file_suffix",".html"));
+                }
+                else new NotFoundException($args["name"]."，文件不存在于根目录或映射配置文件中未定义",__FILE__,__LINE__,"EC100024");
+                $this->fileContent = str_replace ($value,$content,$this->fileContent);
+            }
+        }
     }
 
     protected function parseController ()

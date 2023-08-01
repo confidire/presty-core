@@ -14,8 +14,8 @@
 namespace presty;
 
 use PDO;
-use presty\exception\database\DatabaseArgumentMissing;
-use presty\exception\database\DatabaseException;
+use presty\Exception\database\DatabaseArgumentMissing;
+use presty\Exception\database\DatabaseException;
 
 class Database
 {
@@ -198,16 +198,21 @@ class Database
             }
             foreach ($data as $key => $value) {
                 if (is_string ($value)) $value = $this->quotes ($value);
+                elseif(is_array($value)) {
+                    foreach ($value as $k => $v) {
+                        $value[$k] = $this->quotes ($v);
+                    }
+                }
                 $key = $this->quotesKey ($key);
                 $isMatched = preg_match ('/\[[<>=]{1,2}\]/', $key, $matches);
                 if ($isMatched != 0) $relation = preg_replace ('/(\[)(.+?)(\])/', '$2', $matches)[0];
                 $key = str_replace ("[" . $relation . "]", "", $key);
-                $result[count ($result)] = $key . $relation . $value;
+                if(is_array($value)) $result[count ($result)] = $key . " in " . "(" . implode(",",$value) . ")";
+                else $result[count ($result)] = $key . $relation . $value;
                 $relation = "=";
             }
             $clause = implode (" ".$condition." ", $result) . " ";
         }
-        $clause = "WHERE " . $clause; 
         return $clause;
     }
     
@@ -237,6 +242,35 @@ class Database
             $clause = implode ($condition, $result) . " ";
         }
         $clause = "HAVING " . $clause; 
+        return $clause;
+    }
+    
+    /*
+    *展开like子句
+    *@param where 要解析的句式（Array）
+    *返回完整句式（String）
+    */
+    protected function implodeLike ($datas): string
+    {
+        $result = [];
+        $condition = 'AND';
+        $relation = " LIKE ";
+        foreach ($datas as $key => $data){
+            if(!is_array($data)) {
+                $data = $datas;
+            }
+            else{
+                $condition = $key;
+            }
+            foreach ($data as $key => $value) {
+                if (is_string ($value)) $value = $this->quotes ($value);
+                $key = $this->quotesKey ($key);
+                $isMatched = preg_match ('/\[[<>=]{1,2}\]/', $key, $matches);
+                $result[count ($result)] = $key . $relation . $value;
+            }
+            $clause = implode (" ".$condition." ", $result) . " ";
+        }
+        $clause = $clause;
         return $clause;
     }
 
@@ -277,7 +311,7 @@ class Database
             $limitresult = " LIMIT " . implode(",",$where["LIMIT"]);
         }
         if (isset($where['LIKE'])) {
-            $likeresult = " LIKE " . $this->quotes ($where['LIKE']) . " ";
+            $havingresult = $this->implodeLike($where["LIKE"]);
             if (isset($where['ESCAPE'])) {
                 $escaperesult = " ESCAPE " . $this->quotes ($where['ESCAPE']) . " ";
                 $likeresult .= $escaperesult;
@@ -286,7 +320,7 @@ class Database
         if (isset($where['VARS'])) {
             $varsresult = implode (" ", $where['VARS']) . " ";
         }
-        $result = $whereresult . $groupbyresult . $orderresult . $havingresult . $limitresult . $likeresult . $varsresult;
+        $result = " WHERE ".implode(" AND ",array_filter ([$whereresult,$groupbyresult,$orderresult,$havingresult,$limitresult,$likeresult,$varsresult],function ($val){return ($val === '' || $val === null) ? false : true;}));
         return $result;
     }
 
@@ -300,7 +334,7 @@ class Database
     public function insert (?array $fieldName, ?array $fieldValue, $table = "")
     {
         foreach ($fieldValue as $key => $value) {
-            if (is_string ($fieldValue)) {
+            if (is_string ($value)) {
                 $fieldValue[$key] = $this->quotes ($value);
             }
         }
@@ -329,6 +363,7 @@ class Database
         if(empty($where)) new DatabaseArgumentMissing('delete->\$where',__FILE__,__LINE__);
         else $localWhere .= " ";
         $this->query ("DELETE FROM $table $where");
+         $this->whereClause = "";
         return $this;
     }
 
@@ -361,6 +396,7 @@ class Database
             $update .= "SET $main".$localWhere;
         }
         $this->query ($update);
+         $this->whereClause = "";
         return $this;
     }
 
@@ -384,6 +420,7 @@ class Database
         }
         $state = $this->db->query ($select);
         $this->resultSet = $state;
+        $this->whereClause = "";
         return $this;
     }
 

@@ -14,8 +14,8 @@
 namespace presty;
 
 use presty\Dumper\Driver\Attributes;
-use presty\exception\InvalidArgumentException;
-use presty\exception\RunTimeException;
+use presty\Exception\InvalidArgumentException;
+use presty\Exception\RunTimeException;
 
 class MiddleWare
 {

@@ -12,7 +12,7 @@
  */
 
 namespace presty;
-use presty\exception\RunTimeException;
+use presty\Exception\RunTimeException;
 use Symfony\Component\Console\Application;
 
 class Http

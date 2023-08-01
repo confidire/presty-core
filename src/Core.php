@@ -124,6 +124,7 @@ class Core extends Container
         'template'        => Template::class,
         'exception'       => Exception::class,
         'view'            => View::class,
+        'validate'        => Validate::class,
         'viewQueue'       => ViewQueue::class,
     ];
 

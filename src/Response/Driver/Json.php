@@ -20,11 +20,13 @@ class Json extends Response
     protected $vars = ['json_handler' => JSON_UNESCAPED_UNICODE];
 
     public function __construct ($content = "",$code = 200) {
+        $this->fileType = "text/html; charset=UTF-8";
         $this->init($content,$code);
     }
 
     public function handle ($content = "")
     {
+        if(empty($content)) $content = $this->content;
         $this->content = json_encode ($content,$this->vars['json_handler']);
         return $this;
     }

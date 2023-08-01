@@ -14,7 +14,7 @@
 //框架参数配置
 const FRAME_WORK_NAME = 'Presty';
 const MAIN_VERSION = "1.0.0-dev-6";
-const VERSION = "1.0.0-475993d2-ee60-42a6-ad8c-893956902866-dev-6";
+const VERSION = "1.0.0-35daa408-b610-41ab-ae42-1b12fd852fb6-dev-7";
 const APP_NAME = "Presty";
 const APP_SUB_NAME = "一款轻量级、易上手、完善化的后端PHP开发框架";
 const MINIMUM_PHP_VERSION = '7.3.0';

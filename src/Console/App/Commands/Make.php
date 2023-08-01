@@ -13,7 +13,7 @@
 
 namespace presty\Console\App\Commands;
 
-use presty\exception\RunTimeException;
+use presty\Exception\RunTimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

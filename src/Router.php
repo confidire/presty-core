@@ -13,8 +13,8 @@
 
 namespace presty;
 
-use presty\exception\InvalidReturnException;
-use presty\exception\NotFoundException;
+use presty\Exception\InvalidReturnException;
+use presty\Exception\NotFoundException;
 use presty\Facade\Template;
 
 class Router

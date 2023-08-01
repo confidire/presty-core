@@ -13,10 +13,11 @@
 
 namespace presty;
 
-use presty\exception\InvalidArgumentException;
-use presty\exception\NotFoundException;
-use presty\exception\RunTimeException;
+use presty\Exception\InvalidArgumentException;
+use presty\Exception\NotFoundException;
+use presty\Exception\RunTimeException;
 use ReflectionClass;
+use ReflectionFunction;
 
 class Container
 {
