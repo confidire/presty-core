@@ -35,7 +35,7 @@ class View
     {
         if(empty($fileContent)) return "";
         $this->data = $data;
-        app()->setArrayVar("hasBeenRun","tpl"," - Template_Engine_Init");
+        app()->setArrayVar("hasBeenRun","tpl"," - [".date("Y-m-d H:i:s")."] => Template_Engine_Init");
         $this->url = app()->make("request")->siteUrl();
         middleWare_getClassName ('beforeParseFile')->listening ([$this->fileContent]);
         $this->fileContent = $fileContent;

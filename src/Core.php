@@ -159,7 +159,7 @@ class Core extends Container
         //记录系统启动信息
         $this->startTime = SYSTEM_START_TIME;
         $this->startMemory = SYSTEM_START_MEMORY;
-        $this->setVar ("hasBeenRun",["sInit"=>" - System_Init"]);
+        $this->setVar ("hasBeenRun",["sInit"=>" - [".date("Y-m-d H:i:s")."] => System_Init"]);
 
         //引入系统全局配置
         require_once $this->insideConfigPath . 'Config.php';
@@ -260,7 +260,7 @@ class Core extends Container
     public function end ()
     {
         //系统启动完成
-        app()->setArrayVar("hasBeenRun","sEnd"," - System_End");
+        app()->setArrayVar("hasBeenRun","sEnd"," - [".date("Y-m-d H:i:s")."] => System_End");
         middleWare_getClassName ("appDestroy")->listening ([app()->make("debugMode")]);
         if (env ('system.debug.mode', false) || get_config('env.print_system_status',false)) {
             app()->make("debugMode")->output ();

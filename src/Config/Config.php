@@ -35,6 +35,7 @@ const LANGUAGES = DIR . 'Languages' . DS;
 const FORMAT = DIR . 'Response' . DS;
 const MODEL = ROOT . 'model' . DS;
 const TEMPLATES = PUBLICDIR . 'templates' . DS;
+const VENDOR = ROOT. 'vendor' . DS;
 define ('HTTP', ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://');
 
 //模板引擎参数配置

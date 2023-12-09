@@ -49,7 +49,7 @@ class Router
             set_time_limit (10);
             return false;
         }
-        app()->setArrayVar("hasBeenRun","rInit"," - Router_Init");
+        app()->setArrayVar("hasBeenRun","rInit"," - [".date("Y-m-d H:i:s")."] => Router_Init");
         middleWare_getClassName ('routerInit')->listening ([$query_file]);
         if (!app()->has("route")) {
             $route = [];

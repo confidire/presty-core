@@ -77,7 +77,7 @@ class Database
     function __construct ($dbtype = "mysql", $dbhost = "localhost", $dbname = "", $dbuser = "", $dbpass = "", $dbport = 3306, $dbprefix = "", $dbfile = "", $dbtable = "")
     {
         if ($this->firstRun) {
-            app ()->setArrayVar ("hasBeenRun", "database", " - Database_Init");
+            app ()->setArrayVar ("hasBeenRun", "database", " - [".date("Y-m-d H:i:s")."] => Database_Init");
             $this->dbtype = $dbtype;
             $this->dbhost = $dbhost;
             $this->dbname = $dbname;

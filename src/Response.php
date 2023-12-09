@@ -34,6 +34,7 @@ class Response
     protected $vars = [];
 
     public function init ($content = "", $code = 200){
+        app ()->setArrayVar ("hasBeenRun", "response", " - [".date("Y-m-d H:i:s")."] => Response_Init");
         $this->content = $content;
         $this->code = $code;
         $this->request = new Request;

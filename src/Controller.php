@@ -13,18 +13,22 @@
 
 namespace presty;
 
-use presty\Facade\Request;
 
 class Controller
 {
 
     protected $view, $template,$request, $viewQueue,$middlewareArgs = [];
+    protected $inited = false;
 
     function __construct ()
     {
         $this->viewQueue = app()->make("viewQueue");
         $this->view = $this->viewQueue->getMainView();
         $this->request = app()->make("request");
+        if(!$this->inited) {
+            $this->inited = true;
+        app ()->setArrayVar ("hasBeenRun", "controller", " - [".date("Y-m-d H:i:s")."] => Controller_Init");
+        }
     }
 
     public function global ($vars)

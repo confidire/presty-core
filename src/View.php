@@ -33,6 +33,7 @@ class View
     public function __construct ()
     {
         middleWare_getClassName ('viewInit')->listening ();
+        app ()->setArrayVar ("hasBeenRun", "view", " - [".date("Y-m-d H:i:s")."] => View_Init");
         if(getClass("Response") == false){
             $content = "";
             $this->response = new Response;

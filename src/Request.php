@@ -96,6 +96,8 @@ class Request
     public function __construct ()
     {
 
+        app ()->setArrayVar ("hasBeenRun", "request", " - [".date("Y-m-d H:i:s")."] => Request_Init");
+
         $this->server = $_SERVER;
 
         $this->method = ($this->server['REQUEST_METHOD'] ?? "");
