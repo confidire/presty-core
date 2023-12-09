@@ -69,7 +69,7 @@ class Exception
     {
         $result = [];
         $request = self::app()->make("request");
-        if(self::env("system.debug_mode",false)){
+        if(self::env("system.debug_mode",false) || self::app()->newInstance("config")->get ('env.show_error_detail',false)){
             if(!empty($data)){
                 $result = [
                     "code" => $data["errCode"],

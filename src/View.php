@@ -124,6 +124,15 @@ class View
                     $content = file_get_contents (CACHE . "viewCache" . DS  . $path . "-" . md5_file ($fullPath) . get_config ("env.template_suffix"));
                 } else {
                     $content = file_get_contents ($fullPath);
+                    if(!is_dir (PUBLICDIR)){
+                        new NotFoundException($class,__FILE__,__LINE__,"EC100034","/public目录不存在");
+                    }
+                    if(!is_dir (CACHE)){
+                        mkdir (CACHE);
+                    }
+                    if(!is_dir (CACHE . "viewCache")){
+                        mkdir (CACHE . "viewCache");
+                    }
                     if(!is_dir (CACHE . "viewCache" . DS  . dirname ($path))){
                         mkdir (CACHE . "viewCache" . DS  . dirname ($path));
                     }

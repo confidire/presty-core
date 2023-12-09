@@ -14,10 +14,9 @@
 namespace presty\exception;
 
 use presty\Exception;
-use Psr\Container\NotFoundExceptionInterface;
 
 //Presty Exception Class
-class NotFoundException extends Exception  implements NotFoundExceptionInterface
+class NotFoundException extends Exception
 {
     public function __construct ($errorMessage = '',$errorFile = __FILE__,$errorLine = __LINE__,$errorCode = "EC100016")
     {
