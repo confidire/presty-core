@@ -11,8 +11,7 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\Facade\Container;
-use ReflectionClass;
+namespace presty\Facade;
 use presty\Facade\Facade;
 
 class Container extends Facade

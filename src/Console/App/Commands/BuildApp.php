@@ -29,18 +29,18 @@ class BuildApp extends Command
     protected function execute (InputInterface $input, OutputInterface $output)
     {
         $name = ucfirst(trim($input->getArgument('name')));
-        if(is_dir (app()->getAppPath() . $name)) {
+        if(is_dir (\presty\Container::getInstance ()->getAppPath() . $name)) {
             $output->writeln('<error> Error: 应用目录已存在！' . '</error>');
             return 0;
         }
-        mkdir (app()->getAppPath() . $name);
-        mkdir (app()->getAppPath() . $name . DS . "controller");
-        mkdir (app()->getAppPath() . $name . DS . "model");
-        mkdir (app()->getAppPath() . $name . DS . "config");
+        mkdir (\presty\Container::getInstance ()->getAppPath() . $name);
+        mkdir (\presty\Container::getInstance ()->getAppPath() . $name . DS . "controller");
+        mkdir (\presty\Container::getInstance ()->getAppPath() . $name . DS . "model");
+        mkdir (\presty\Container::getInstance ()->getAppPath() . $name . DS . "config");
         system ("php presty make:app_entrance " . $name,$appEntranceBuildResult);
         system ("php presty make:controller " . $name . "@index true",$controllerBuildResult);
         system ("php presty make:model " . $name . "@index",$modelBuildResult);
-        if(is_dir (app()->getAppPath() . $name)) $output->writeln('<info>App: ' . $name . ' built successfully.</info>');
+        if(is_dir (\presty\Container::getInstance ()->getAppPath() . $name)) $output->writeln('<info>App: ' . $name . ' built successfully.</info>');
         else {
             $output->writeln('<error> Error: 应用目录创建失败！' . '</error>');
             return -1;

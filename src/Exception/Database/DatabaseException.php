@@ -11,7 +11,7 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\exception\database;
+namespace presty\Exception\Database;
 
 class DatabaseException extends \Exception
 {

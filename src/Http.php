@@ -42,7 +42,7 @@ class Http
     {
         if(php_sapi_name () != "cli-server") $this->app->setRunningMode("web");
         else $this->app->setRunningMode("cli-test");
-        $router = $this->app->newInstance("router",true);
+        $router = $this->app->makeAndSave("router");
         $url = $router->init();
         $url = $router->setEngine()->getEngine()->parse($url);
         $request->setUrl ($url);

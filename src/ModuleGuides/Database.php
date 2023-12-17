@@ -17,7 +17,7 @@ class Database
 {
     public function register (\presty\Core $app)
     {
-        if(get_config ("env.database_auto_load")) {
+        if(\presty\Container::getInstance ()->make("config")->get ("env.database_auto_load")) {
             $app->instance ("database", new \presty\Database(
                 env ('database.type', "mysql"),
                 env ('database.host', "127.0.0.1"),

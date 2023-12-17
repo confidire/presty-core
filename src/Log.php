@@ -37,7 +37,7 @@ class Log
     public function logOut ($content, $saveFile = "")
     {
         middleWare_getClassName ('beforeLogWrite')->listening ([$content, $saveFile]);
-        app()->setArrayVar("hasBeenRun",'end'," - Log_Write");
+        app()->set("hasBeenRun",'end',"[ ".(new \DateTime())->format("Y-m-d H:i:s:u")." ] => - Log_Write");
         $this->runtime = date ("Y-m-d");
         $this->totalRuntime = date ("H-i-s");
         $this->save_path .= $this->runtime;
@@ -53,7 +53,7 @@ class Log
     public function errorOut ($content, $saveFile = CACHE . DS . "errorLogs" . DS . "Error.log")
     {
         middleWare_getClassName ('beforeLogWrite')->listening ([$content, $saveFile]);
-        app()->setArrayVar("hasBeenRun",'end'," - Log_Write");
+        app()->set("hasBeenRun",'end',"[ ".(new \DateTime())->format("Y-m-d H:i:s:u")." ] - Log_Write");
         $this->runtime = date ("Ym");
         $this->save_path .= $this->runtime;
         if (!is_dir ($this->save_path . DS . "errorLogs")) {

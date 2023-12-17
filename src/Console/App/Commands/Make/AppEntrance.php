@@ -34,7 +34,7 @@ class AppEntrance extends Make
 
     protected function getPathName(string $name): string
     {
-        return app()->getAppPath() . $this->getEntranceAppName() . '.php';
+        return \presty\Container::getInstance ()->getAppPath() . $this->getEntranceAppName() . '.php';
     }
 
     protected function getClassName(string $name): string

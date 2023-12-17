@@ -11,7 +11,7 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\exception;
+namespace presty\Exception;
 
 class ErrorException extends \Exception
 {

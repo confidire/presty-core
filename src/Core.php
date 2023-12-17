@@ -157,16 +157,16 @@ class Core extends Container
         $this->moduleGuidesPath = $this->rootPath."ModuleGuides".$this->ds;
 
         //记录系统启动信息
-        $this->startTime = SYSTEM_START_TIME;
-        $this->startMemory = SYSTEM_START_MEMORY;
-        $this->setVar ("hasBeenRun",["sInit"=>" - [".date("Y-m-d H:i:s")."] => System_Init"]);
+        $this->startTime = defined("SYSTEM_START_TIME") ? SYSTEM_START_TIME : 0;
+        $this->startMemory = defined("SYSTEM_START_TIME") ? SYSTEM_START_MEMORY : 0;
+        $this->set ("hasBeenRun",["sInit"=>" - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => System_Init"]);
 
         //引入系统全局配置
         require_once $this->insideConfigPath . 'Config.php';
 
         //注册系统基本模块
         $module = $this->instance ("module",new Module());
-        $this->newInstance ("module")->init ($this)->guide ();
+        $this->make ("module")->init ($this)->guide ();
 
         return $this;
     }
@@ -176,7 +176,7 @@ class Core extends Container
      */
     public function runMain ()
     {
-        return $this->newInstance ("module")->callFunction("http","init",[$this],0);
+        return $this->make ("module")->callFunction("http","init",[$this],0);
     }
 
     /**
@@ -260,15 +260,15 @@ class Core extends Container
     public function end ()
     {
         //系统启动完成
-        app()->setArrayVar("hasBeenRun","sEnd"," - [".date("Y-m-d H:i:s")."] => System_End");
-        middleWare_getClassName ("appDestroy")->listening ([app()->make("debugMode")]);
-        if (env ('system.debug.mode', false) || get_config('env.print_system_status',false)) {
-            app()->make("debugMode")->output ();
+        \presty\Container::getInstance ()->set("hasBeenRun","sEnd"," - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => System_End");
+        \presty\Container::getInstance ()->make("middleWare")->getClassName ("appDestroy")->listening ([\presty\Container::getInstance ()->make("debugMode")]);
+        if (\presty\Env::get ('system.debug.mode', false) || \presty\Container::getInstance ()->make("config")->get('env.print_system_status',false)) {
+            \presty\Container::getInstance ()->make("debugMode")->output ();
         }
-        if(get_config("env.save_running_log",false)) {
+        if(\presty\Container::getInstance ()->make("config")->get("env.save_running_log",false)) {
             $time = date("Y-m-d H:i:s");
-            $title = "[".$time." ".app()->make("request")->siteUrl()."]";
-            $data = app()->make("debugMode")->print();
+            $title = "[".$time." ".\presty\Container::getInstance ()->make("request")->siteUrl()."]";
+            $data = \presty\Container::getInstance ()->make("debugMode")->print();
             $temp = "";
             foreach ($data as $item){
                 $temp .= "\\n".implode ("\\n",$item);

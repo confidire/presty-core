@@ -96,7 +96,7 @@ class Request
     public function __construct ()
     {
 
-        app ()->setArrayVar ("hasBeenRun", "request", " - [".date("Y-m-d H:i:s")."] => Request_Init");
+        \presty\Container::getInstance ()->set ("hasBeenRun", "request", " - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => Request_Init");
 
         $this->server = $_SERVER;
 
@@ -106,7 +106,7 @@ class Request
 
         $this->get = $_GET;
 
-        $this->config = self::get_all_config();
+        $this->config = \presty\Container::getInstance ()->make("config")->getAll();
 
         $this->env = $_ENV;
 
@@ -142,7 +142,7 @@ class Request
 
     public function __call ($name, $arguments)
     {
-        $this->env = get_all_config ();
+        $this->env = \presty\Container::getInstance ()->make("config")->getALl ();
         $this->global = $GLOBALS;
         if (function_exists ($name) && $name != "env") {
             call_user_func_array ($name, $arguments);

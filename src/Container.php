@@ -13,7 +13,6 @@
 
 namespace presty;
 
-use presty\Exception\InvalidArgumentException;
 use presty\Exception\NotFoundException;
 use presty\Exception\RunTimeException;
 use ReflectionClass;
@@ -23,11 +22,9 @@ class Container
 {
     protected static $instance;
 
-    protected $vars = [];
-
     protected $instances = [];
 
-    protected $closure = [];
+    protected $bind = [];
 
     protected $logo = [];
 
@@ -51,20 +48,6 @@ class Container
         static::$instance = $instance;
     }
 
-    public function bind ($key, $value = null): Container
-    {
-        if (is_array ($key) && $value == null) foreach ($key as $key => $val) $this->bind ($key, $val);
-        elseif ($value instanceof Closure) $this->bind[$key] = $value;
-        elseif (is_object ($value)) $this->instance ($key, $value);
-        else {
-            $key = $this->liftAlias ($key);
-            if ($key != $value) {
-                $this->bind[$key] = $value;
-            }
-        }
-        return $this;
-    }
-
     //解除别名标识，获取绑定的原名
     public function liftAlias ($key): string
     {
@@ -85,8 +68,35 @@ class Container
         return $this;
     }
 
-    //获取实例容器中的实例对象，没有就从标识中创建
-    public function newInstance ($key, $autoSave = false)
+    public function make ($key)
+    {
+        $key = $this->liftAlias ($key);
+
+        if(is_array($key)) {
+            foreach ($key as $k => $value) {
+                $this->make ($k, $value);
+            }
+        }
+
+
+        if(isset($this->instances[$key])){
+            return $this->instances[$key];
+        }elseif(isset($this->logo[$key])){
+            $class = new $this->logo[$key];
+            return $class;
+        }elseif(isset($this->bind[$key]) && is_string($this->bind[$key])){
+                if(class_exists ($this->bind[$key])){
+                $class = new $this->bind[$key];
+                return $class;
+            }
+        }elseif(class_exists ($key)){
+            $class = new $key;
+            return $class;
+        }
+        return false;
+    }
+
+    public function makeAndSave ($key)
     {
         $key = $this->liftAlias ($key);
 
@@ -94,37 +104,52 @@ class Container
             return $this->instances[$key];
         }elseif(isset($this->logo[$key])){
             $class = new $this->logo[$key];
-            if($autoSave) $this->instance ($key,$class);
+            $this->instance ($key,$class);
             return $class;
-        }elseif(isset($this->vars[$key]) && class_exists ($this->vars[$key])){
-            $class = new $this->vars[$key];
-            if($autoSave) $this->instance ($key,$class);
+        }elseif(isset($this->bind[$key]) && class_exists ($this->bind[$key])){
+            $class = new $this->bind[$key];
+            $this->instance ($key,$class);
             return $class;
         }elseif(class_exists ($key)){
             $class = new $key;
-            if($autoSave) $this->instance ($key,$class);
+            $this->instance ($key,$class);
             return $class;
         }
         return false;
     }
 
-    public function make ($key)
+    public function get ($name)
     {
-        $key = $this->liftAlias ($key);
+        $name = $this->liftAlias ($name);
 
-        if(isset($this->instances[$key])){
-            return $this->instances[$key];
-        }elseif(isset($this->logo[$key])){
-            return new $this->logo[$key];
-        }elseif(isset($this->vars[$key]) && class_exists ($this->vars[$key])){
-            return new $this->vars[$key];
-        }elseif(class_exists ($key)){
-            return new $key;
+        if(isset($this->bind[$name])){
+            return $this->bind[$name];
+        }else {
+            return false;
         }
-        return false;
     }
 
-    public function get ($name, $args = [])
+    public function set ($name, $value = "",$arrayValue = "")
+    {
+        $name = $this->liftAlias ($name);
+
+        if(!empty($arrayValue)){
+            if(isset($this->bind[$name]) && is_array($this->bind[$name]))
+                $this->bind[$name][$value] = $arrayValue;
+            else $this->bind[$name] = [$value => $arrayValue];
+        }
+        else{
+            if(!isset($this->bind[$name])){
+                $this->bind[$name] = $value;
+                return $this;
+            }
+            else{
+                new RunTimeException('Container::set( '.$name.' , '.$value.' )',__FILE__,__LINE__,'EC100035');
+            }
+        }
+    }
+
+    public function getSelfMethod ($name, $args = [])
     {
         $name = $this->liftAlias ($name);
         if (class_exists ($name)) return $this->invokeClass ($name, $args);
@@ -136,35 +161,6 @@ class Container
     {
         $name = $this->liftAlias ($name);
         return $this->instances[$name] ?? false;
-    }
-
-    public function setVar ($name,$value): Container
-    {
-        $this->vars[$name] = $value;
-        return $this;
-    }
-
-    public function setArrayVar ($name,$key,$value): Container
-    {
-        if(!is_array ($this->vars[$name])) new RunTimeException($name."不是Array类型的变量",__FILE__,__LINE__);
-        $this->vars[$name][$key] = $value;
-        return $this;
-    }
-
-    public function has ($name, $value = "", $returnValue = false)
-    {
-        if (is_bool ($name) && $name && !empty($value)) {
-            if ($returnValue) return !is_bool (array_search ($value, $this->vars)) ? array_search ($value, $this->vars) : false;
-            else return !is_bool (array_search ($value, $this->vars));
-        } elseif (!empty($name) && !is_bool ($name) && empty($value)) {
-            if ($returnValue) return $this->vars[$name] ?? false;
-            else return isset($this->vars[$name]);
-        } elseif (!empty($name) && !is_bool ($name) && !empty($value)) {
-            if ($returnValue) return isset($this->vars[$name]) && $this->vars[$name] == $value ? $this->vars[$name] : false;
-            else return isset($this->vars[$name]) && $this->vars[$name] == $value;
-        } else {
-            new InvalidArgumentException ("Name: " . $name . " Value: " . $value . " returnValue: " . $returnValue,__FILE__, __LINE__);
-        }
     }
 
     public function invokeFunction ($function, array $vars = [])
@@ -207,12 +203,12 @@ class Container
 
     public function __get ($name)
     {
-        return $this->get($name);
+        return $this->getSelfMethod($name);
     }
 
     public function __call ($name,$args)
     {
-        return $this->get($name,$args);
+        return $this->getSelfMethod($name,$args);
     }
 
 }

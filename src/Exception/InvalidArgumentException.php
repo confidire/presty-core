@@ -11,7 +11,7 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\exception;
+namespace presty\Exception;
 use presty\Exception;
 use Psr\Cache\InvalidArgumentException as PsrCacheInvalidArgumentInterface;
 use Psr\SimpleCache\InvalidArgumentException as SimpleCacheInvalidArgumentInterface;

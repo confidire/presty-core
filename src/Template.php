@@ -17,12 +17,12 @@ class Template
 {
     public function getTemplateContent ($fileName)
     {
-        $path = TEMPLATES . $fileName . get_config('env.template_suffix');
+        $path = TEMPLATES . $fileName . \presty\Container::getInstance ()->make("config")->get('view.template_suffix');
         return file_get_contents ($path);
     }
 
     public function getTemplatePath ($fileName)
     {
-        return TEMPLATES . $fileName . get_config('env.template_suffix');
+        return TEMPLATES . $fileName . \presty\Container::getInstance ()->make("config")->get('view.template_suffix');
     }
 }

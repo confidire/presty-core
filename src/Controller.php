@@ -22,12 +22,12 @@ class Controller
 
     function __construct ()
     {
-        $this->viewQueue = app()->make("viewQueue");
+        $this->viewQueue = \presty\Container::getInstance()->make("viewQueue");
         $this->view = $this->viewQueue->getMainView();
-        $this->request = app()->make("request");
+        $this->request = \presty\Container::getInstance()->make("request");
         if(!$this->inited) {
             $this->inited = true;
-        app ()->setArrayVar ("hasBeenRun", "controller", " - [".date("Y-m-d H:i:s")."] => Controller_Init");
+            \presty\Container::getInstance ()->set ("hasBeenRun", "controller", " - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => Controller_Init");
         }
     }
 

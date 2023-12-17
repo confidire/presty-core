@@ -33,7 +33,8 @@ class AntiXSS
         if (is_array ($arr)) {
             foreach ($arr as $key => $value) {
                 if (!is_array ($value)) {
-                    if (!get_magic_quotes_gpc ()) {
+                    if(!defined('MAGIC_QUOTES_GPC')) define('MAGIC_QUOTES_GPC',ini_set("magic_quotes_runtime",0) ? true : false);
+                    if (!MAGIC_QUOTES_GPC) {
                         $value = addslashes ($value);
                     }
 

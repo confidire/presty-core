@@ -44,9 +44,7 @@ class Run extends Command
         $bar->setMessage('System Self-test...');
         $bar->setFormat("%message%\r\n%current%/%max% [%bar%]  %percent%%");
         $bar->start();
-        sleep(1);
         $bar->setMessage('Checking PHP version...');
-        sleep(2);
         if (version_compare(PHP_VERSION, MINIMUM_PHP_VERSION) < 0) {
             echo "<error>Your PHP version is below the minimum version required for Presty to run (".MINIMUM_PHP_VERSION.")</error>";
             exit(-1);
@@ -54,7 +52,6 @@ class Run extends Command
             $bar->advance(1);
         }
         $bar->setMessage('Checking server entry file...');
-        sleep(2);
         if(!file_exists ($path . DIRECTORY_SEPARATOR . 'test.php')){
             echo "<error>Entry file is not exists (".$path . DIRECTORY_SEPARATOR . 'test.php'.")</error>";
             exit(-1);
@@ -63,7 +60,6 @@ class Run extends Command
             $bar->advance(1);
         }
         $bar->setMessage('Server startup preparation...');
-        sleep(3);
         $command = sprintf (
             'php -S %s:%d -t %s %s', $host, $port, escapeshellarg ($path), escapeshellarg ($path . DIRECTORY_SEPARATOR . 'test.php')
         );
@@ -71,13 +67,12 @@ class Run extends Command
         $bar->finish();
         $io->newLine();
         $io->success('Presty local web server is starting...');
-        sleep(3);
         $debugMode = env("system.debug_mode",false) ? "<comment>Enable</comment>" : "<info>Unable</info>";
-        $databaseAutoLoad = get_config("env.database_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $sessionAutoloada = get_config("env.session_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $saveLogs = get_config("env.save_running_log",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $xssProtect = get_config("env.auto_xss_protect",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $indexRoute = get_config("env.use_system_index_route",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $databaseAutoLoad = \presty\Container::getInstance ()->make("config")->get("env.database_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $sessionAutoloada = \presty\Container::getInstance ()->make("config")->get("env.session_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $saveLogs = \presty\Container::getInstance ()->make("config")->get("env.save_running_log",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $xssProtect = \presty\Container::getInstance ()->make("config")->get("env.auto_xss_protect",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $indexRoute = \presty\Container::getInstance ()->make("config")->get("env.use_system_index_route",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
         $output->writeln ("  _____               _         \r\n |  __ \             | |\r\n | |__) | __ ___  ___| |_ _   _ \r\n |  ___/ '__/ _ \/ __| __| | | |\r\n | |   | | |  __/\__ \ |_| |_| |\r\n |_|   |_|  \___||___/\__|\__, |\r\n                           __/ |\r\n                          |___/ \r\n");
         $output->writeln ("---------------------------------------------------------------");
         $output->writeln ("·PHP: v".PHP_VERSION."                       "."·Zend: v".zend_version ());

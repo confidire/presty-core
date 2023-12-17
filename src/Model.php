@@ -15,11 +15,16 @@ namespace presty;
 
 class Model
 {
-    public function model ($modelClass)
+    public function getModelClass ($modelClass,$returnClaName = false)
     {
         if(is_bool (stripos ($modelClass,"\\"))){
-            $modelClass = appClass ()."\\model"."\\".$modelClass;
+            $modelClass = $this->appClass ()."\\model"."\\".$modelClass;
         }
-        return new $modelClass;
+        if($returnClaName) return $modelClass;
+        else return new $modelClass;
+    }
+
+    public function appClass() {
+        return appClass();
     }
 }

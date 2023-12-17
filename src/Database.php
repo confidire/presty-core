@@ -77,7 +77,7 @@ class Database
     function __construct ($dbtype = "mysql", $dbhost = "localhost", $dbname = "", $dbuser = "", $dbpass = "", $dbport = 3306, $dbprefix = "", $dbfile = "", $dbtable = "")
     {
         if ($this->firstRun) {
-            app ()->setArrayVar ("hasBeenRun", "database", " - [".date("Y-m-d H:i:s")."] => Database_Init");
+            \presty\Container::getInstance ()->set ("hasBeenRun", "database", " - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => Database_Init");
             $this->dbtype = $dbtype;
             $this->dbhost = $dbhost;
             $this->dbname = $dbname;
@@ -87,7 +87,7 @@ class Database
             $this->dbprefix = $dbprefix;
             $this->dbfile = $dbfile;
             $this->dbtable = $dbtable;
-            if (get_config ('database_auto_load', false)) {
+            if (\presty\Container::getInstance ()->make("config")->get ('database_auto_load', false)) {
                 $this->init ();
             }
             $this->firstRun = false;
@@ -98,7 +98,6 @@ class Database
     {
         try {
             $this->dsn = $this->dbtype . ":host=" . $this->dbhost . ";dbname=" . $this->dbname;
-            $hasBeenRun['database'] = " - Database_Init";
             $this->db = $dbh = new PDO($this->dsn, $this->dbuser, $this->dbpass, [PDO::ATTR_PERSISTENT => true]); //初始化一个PDO对象
             $this->db->setAttribute (PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);                                  //设置错误模式
         } catch (PDOException $e) {

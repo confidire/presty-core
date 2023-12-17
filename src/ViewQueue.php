@@ -26,7 +26,7 @@ class ViewQueue
     {
         $this->queue[$name] = $view;
         $this->mainView = $view;
-        container_instance ("View",$this->mainView);
+        \presty\Container::getInstance ()->instance ("View",$this->mainView);
         return $this;
     }
 

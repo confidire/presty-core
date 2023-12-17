@@ -26,7 +26,7 @@ class Router
 
     public function setEngine ($engine = null): Router
     {
-        $this->engine = $engine ?? Container::getInstance ()->invokeClass(get_config('env.url_parser', 'presty\Router\Driver\Presty'));
+        $this->engine = $engine ?? Container::getInstance ()->invokeClass(\presty\Container::getInstance ()->make("config")->get('env.url_parser', 'presty\Router\Driver\Presty'));
 
         return $this;
     }
@@ -49,14 +49,14 @@ class Router
             set_time_limit (10);
             return false;
         }
-        app()->setArrayVar("hasBeenRun","rInit"," - [".date("Y-m-d H:i:s")."] => Router_Init");
-        middleWare_getClassName ('routerInit')->listening ([$query_file]);
-        if (!app()->has("route")) {
+        \presty\Container::getInstance()->set("hasBeenRun","rInit"," - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => Router_Init");
+        \presty\Container::getInstance ()->make("middleWare")->getClassName ('routerInit')->listening ([$query_file]);
+        if (!\presty\Container::getInstance()->has("route")) {
             $route = [];
-            scanFiles (ROUTE, true, function ($a) use($route) {
+            $this->scanFiles (ROUTE, true, function ($a) use($route) {
                 $data = include ($a);
                 $route = array_merge ($route, $data);
-                app()->setVar("route",$route);
+                \presty\Container::getInstance()->setVar("route",$route);
             });
         }
         return $query_file;
@@ -73,11 +73,11 @@ class Router
             $class = "app\\"."Entrance\\".ucfirst($url['app']);
             $opinion = (new $class)->entrance($url) ?? true;
             if(is_file(APP.ucfirst($url['app']).".php") && !$opinion){
-                $this->response = app()->make("Response")->create (Template::getTemplateContent(get_config("env.access_denied_page","AccessDenied")), get_config ('env.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
+                $this->response = \presty\Container::getInstance()->make("Response")->create (Template::getTemplateContent(\presty\Container::getInstance ()->make("config")->get("env.access_denied_page","AccessDenied")), \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
                 return $this->response->handle();
             }
         }
-        if (is_dir (APP . $url['app'] . DS . "config" . DS)) scanFiles (APP . $url['app'] . DS . "config" . DS, true, function ($a, $v) use($url) {
+        if (is_dir (APP . $url['app'] . DS . "config" . DS)) $this->scanFiles (APP . $url['app'] . DS . "config" . DS, true, function ($a, $v) use($url) {
             config()->overwrite(array_merge (get_all_config (), require_once (APP . $url['app'] . DS . "config" . DS . pathinfo ($v, PATHINFO_FILENAME) . ".php")));
         });
         $request->setUrl($url);
@@ -87,7 +87,7 @@ class Router
         $className = "\\" . "app" . "\\" . $url["app"] . "\\" . "controller" . "\\" . $url["controller"];
         $class = new $className;
         if (method_exists ($class, $url['function'])) {
-            $mdwClass = app()->make("middleWare");
+            $mdwClass = \presty\Container::getInstance()->make("middleWare");
             $middlewares = $mdwClass->parseFunctionAttributesMiddleWare($class,$url['function']);
             if(!empty($middlewares)){
                 foreach ($middlewares as $middleware) {
@@ -113,23 +113,42 @@ class Router
         } elseif (method_exists ($class, "__call")) {
             $pageContent = call_user_func_array ([$class, '__call'], [$url['function'], [$request]]);
         } else {
-            if(empty(get_config ('env.404_template',''))) new NotFoundException($className . "->" . $url['function']."()",__FILE__,__LINE__,"EC100010");
+            if(empty(\presty\Container::getInstance ()->make("config")->get ('env.404_template',''))) new NotFoundException($className . "->" . $url['function']."()",__FILE__,__LINE__,"EC100010");
             else {
-                $this->response = app()->make("Response")->create (Template::getTemplateContent(get_config('env.404_template','')), get_config ('env.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
+                $this->response = \presty\Container::getInstance()->make("Response")->create (Template::getTemplateContent(\presty\Container::getInstance ()->make("config")->get('env.404_template','')), \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
                 return $this->response->handle();
             }
         }
         if (gettype ($pageContent) == "NULL") {
             new InvalidReturnException(lang()["controller_empty_return"],__FILE__,__LINE__);
         }
-        elseif(is_string ($pageContent)) $this->response = app()->make("Response")->create ($pageContent, get_config ('env.response_type', 'View'), 200, [app()->make("View")]);
+        elseif(is_string ($pageContent)) $this->response = \presty\Container::getInstance()->make("Response")->create ($pageContent, \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 200, [\presty\Container::getInstance()->make("View")]);
         else $this->response = $pageContent;
-        middleWare_getClassName ('afterRouter')->listening ([$query_file, $url]);
-        if(env('system_debug_mode')) {
+        \presty\Container::getInstance ()->make("middleWare")->getClassName ('afterRouter')->listening ([$query_file, $url]);
+        if(\presty\Env::get('system_debug_mode')) {
             return $this->response->handle ();
         }else{
             if(getPageCacheStatus () == 0) return $this->response->defaultHandle ();
             else return $this->response->handle ();
+        }
+    }
+    function scanFiles ($dir,$deepScan,$function)
+    {
+        $temp = scandir ($dir);
+        foreach ($temp as $v) {
+            $a = $dir  . DS . $v;
+            if (is_dir ($a)) {
+                if ($v == '.' || $v == '..') {
+                    continue;
+                }
+                if($deepScan) $this->scanFiles ($a,$deepScan,$function);
+                else continue;
+            } else {
+                $fileFullPath = $a;
+                $fileName = $v;
+                $function($fileFullPath,$fileName);
+
+            }
         }
     }
 }

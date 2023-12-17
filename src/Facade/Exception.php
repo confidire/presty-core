@@ -11,13 +11,13 @@
  * +----------------------------------------------------------------------
  */
 
-namespace presty\Exception;
+namespace presty\Facade;
 
-use presty\Exception;
+use presty\Facade;
 
-class RunTimeException extends Exception
+class Exception extends Facade
 {
-    public function __construct ($errorMessage = '',$errorFile = __FILE__,$errorLine = __LINE__,$errorCode = "EC100002") {
-        parent::throw ($errorFile,$errorLine,$errorCode,"Runtime Error",$errorMessage);
+    public static function setFacade () {
+        return "\presty\Exception";
     }
 }

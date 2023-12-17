@@ -12,25 +12,29 @@
  */
 
 namespace presty;
+
 use presty\Facade\Template;
 
 class DebugMode
 {
 
-    public function format_bytes ($size, $delimiter = ''): string
+    public function format_bytes($size, $delimiter = ''): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-        if(is_numeric($size)) $size = (int)$size;
-        else return "0KB";
-        for ($i = 0; $size >= 1024 && $i < 5; $i++) $size /= 1024;
-        return round ((float)$size, 2) . $delimiter . " " . $units[$i];
+        if (is_numeric($size))
+            $size = (int) $size;
+        else
+            return "0KB";
+        for ($i = 0; $size >= 1024 && $i < 5; $i++)
+            $size /= 1024;
+        return round((float) $size, 2) . $delimiter . " " . $units[$i];
     }
 
-    public function output ()
+    public function output()
     {
-        $data = $this->print ();
+        $data = $this->print();
         echo ('<div id="presty_trace_open" style="height: 30px;float: right;text-align: right;overflow: hidden;position: fixed;bottom: 0px;right: 10px;color: rgb(0, 0, 0);line-height: 30px;cursor: pointer;display: block;border-radius: 5px 5px 0px 0px;box-shadow: #0000002e -1px -1px 4px 2px;background-color: #fff;">
-    <div style="color: #262626db;padding:0 6px;float:right;line-height:30px;font-size:14px;">'.round(number_format (microtime (true) - SYSTEM_START_TIME, 10, '.', ''),6).'s </div>
+    <div style="color: #262626db;padding:0 6px;float:right;line-height:30px;font-size:14px;">' . round(number_format(microtime(true) - SYSTEM_START_TIME, 10, '.', ''), 6) . 's </div>
     <img width="30" style="" title="ShowPageTrace" src="/imgs/favicon.ico">
 </div>
 
@@ -47,44 +51,74 @@ class DebugMode
         <div id="presty_trace_tab_cont" style="overflow:auto;height:212px;padding:0;line-height: 24px">
             <div style="display: block;">
                 <ol style="padding: 0; margin:0">');
-        foreach ($data['total'] as $value){
-            echo "<li style=\"border-bottom:1px solid #EEE;font-size:14px;padding:0 12px\">$value</li>";
+        echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;">本项展示了系统重要信息</li>';
+        if(!empty($data['total'])){
+            foreach ($data['total'] as $value) {
+                echo "<li style=\"border-bottom:1px solid #EEE;font-size:14px;padding:0 12px\">$value</li>";
+            }
+        }
+        else{
+            echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;color:red;">运行时错误：未获取到任何系统信息，请检查框架资源完整性！</li>';
         }
         echo ('</ol>
             </div>
             <div style="display: none;">
                 <ol style="padding: 0; margin:0">
                     ');
-                foreach (get_included_files () as $file){
-                    echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">'.$file.'  ( '.$this->format_bytes (filesize ($file)).' )  </li>';
-                }
-            echo ('</ol>
+        echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;">本项展示了页面渲染前所有被引入的PHP文件，按引入时间从先到后排序</li>';
+        if (!empty(get_included_files())) {
+            foreach (get_included_files() as $file) {
+                echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">' . $file . '  ( ' . $this->format_bytes(filesize($file)) . ' )  </li>';
+            }
+        }
+        else{
+            echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;color:red;">致命错误：已引入文件列表为空，请检查PHP运行状态和日志！</li>';
+        }
+        echo ('</ol>
             </div>
             <div style="display: none;">
                 <ol style="padding: 0; margin:0">');
-                foreach ($data['flow'] as $flow){
-                    echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">'. $flow .'</li>';
-                }
+        echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;">本项展示了框架各机制的运行状态和启动时间</li>';
+        if (!empty($data['flow'])) {
+            foreach ($data['flow'] as $flow) {
+                echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">'. $flow .'</li>';
+            }
+        } else {
+            echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;color:red;">运行时错误：未记录到任何运行状态，请检查框架资源完整性！</li>';
+        }
         echo ('
                 </ol>
             </div>
             <div style="display: none;">
                 <ol style="padding: 0; margin:0">
+                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;">本项记录了框架运行时产生的所有错误与异常</li>
+                <li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;color:grey;">功能正在开发中，敬请期待</li>
                 </ol>
             </div>
             <div style="display: none;">
                 <ol style="padding: 0; margin:0">
                     ');
-                foreach ($data['sql'] as $sql){
-                    echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">'.$sql.'</li>';
-                }
-                echo ('</ol>
+        echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;">本项记录了所有的数据库操作</li>';
+        if (!empty($data['sql'])) {
+            foreach ($data['sql'] as $sql) {
+                echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">' . $sql . '</li>';
+            }
+        } else {
+            echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">无任何SQL操作</li>';
+        }
+        echo ('</ol>
             </div>
             <div style="display: none;">
                 <ol style="padding: 0; margin:0">');
-                foreach ($data['system'] as $system){
-                    echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">'.$system.  '</li>';
-                }
+        echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;">本项展示了系统环境配置</li>';
+        if(!empty($data['system'])){
+            foreach ($data['system'] as $system) {
+                echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px">' . $system . '</li>';
+            }
+        }
+        else{
+            echo '<li style="border-bottom:1px solid #EEE;font-size:14px;padding:0 12px;font-weight:600;color:red;">致命错误：无法获取系统信息，请检查PHP与操作系统的运行状态和日志！</li>';
+        }
         echo ('
                 </ol>
             </div>
@@ -133,104 +167,57 @@ document.cookie = "presty_show_running_trace="+history.join("|")
         tab_tit[history[1]].click();
     })();
 </script>');
-        // echo Template::getTemplateContent(app()->newInstance("config")->get("env.running_trace_template","RunningTrace"));
+        // echo Template::getTemplateContent(\presty\Container::getInstance ()->newInstance("config")->get("env.running_trace_template","RunningTrace"));
     }
 
-    public static function getRenderContent ($path,$data = [])
+    public static function getRenderContent($path, $data = [])
     {
-        ob_start ();
-        extract ($data);
+        ob_start();
+        extract($data);
         include $path;
-        return ob_get_clean ();
+        return ob_get_clean();
     }
 
-    public function print ()
+    public function print()
     {
-        $hasBeenRun = app()->has("hasBeenRun","",true);
+        $hasBeenRun = \presty\Container::getInstance()->get("hasBeenRun");
         $data = [];
-        $runtime = number_format (microtime (true) - SYSTEM_START_TIME, 10, '.', '') * 1000;
-        $reqs = $runtime > 0 ? number_format (1 / $runtime, 2) : '∞';
-        $mem = number_format ((memory_get_usage () - SYSTEM_START_MEMORY) / 1024, 2);
+        $runtime = number_format(microtime(true) - SYSTEM_START_TIME, 10, '.', '') * 1000;
+        $reqs = $runtime > 0 ? number_format(1 / $runtime, 2) : '∞';
+        $mem = number_format((memory_get_usage() - SYSTEM_START_MEMORY) / 1024, 2);
         if (isset($_SERVER['HTTP_HOST'])) {
             $uri = $_SERVER['SERVER_PROTOCOL'] . ' ' . $_SERVER['REQUEST_METHOD'] . ' : ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         } else {
-            $uri = 'cmd:' . implode (' ', $_SERVER['argv']);
+            $uri = 'cmd:' . implode(' ', $_SERVER['argv']);
         }
         $data['total'] = [
-            lang()['running_time'] . "：$runtime ms " . lang()['throughput'] . "：" . $reqs . " req/s",
-            lang()['require_info'] . "：" . date ('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']) . ' ' . $uri,
-            lang()['server_info'] . "：" . php_uname ("a"),
-            lang()['framework_version'] . "：" . VERSION . "    （" . $this->compareFramworkVersion()."）",
-            lang()['php_version'] . "：" . phpversion (),
-            lang()['zend_version'] . "：" . zend_version (),
-            lang()['client_version'] . "：" . ($_SERVER['HTTP_USER_AGENT'] ?? ""),
-            lang()['interface_type'] . "：" . php_sapi_name (),
-            lang()['process_id'] . "：" . getmypid (),
-            lang()['index_node'] . "：" . getmyinode (),
+            \presty\Container::getInstance()->make("lang")->lang()['running_time'] . "：$runtime ms " . \presty\Container::getInstance()->make("lang")->lang()['throughput'] . "：" . $reqs . " req/s",
+            \presty\Container::getInstance()->make("lang")->lang()['require_info'] . "：" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']) . ' ' . $uri,
+            \presty\Container::getInstance()->make("lang")->lang()['server_info'] . "：" . php_uname("a"),
+            \presty\Container::getInstance()->make("lang")->lang()['framework_version'] . "：" . VERSION,
+            \presty\Container::getInstance()->make("lang")->lang()['php_version'] . "：" . phpversion(),
+            \presty\Container::getInstance()->make("lang")->lang()['zend_version'] . "：" . zend_version(),
+            \presty\Container::getInstance()->make("lang")->lang()['client_version'] . "：" . ($_SERVER['HTTP_USER_AGENT'] ?? ""),
+            \presty\Container::getInstance()->make("lang")->lang()['interface_type'] . "：" . php_sapi_name(),
+            \presty\Container::getInstance()->make("lang")->lang()['process_id'] . "：" . getmypid(),
+            \presty\Container::getInstance()->make("lang")->lang()['index_node'] . "：" . getmyinode(),
         ];
-        if (session_id ()) {
-            $data['total'][] = "SessionID：" . session_id ();
+        if (session_id()) {
+            $data['total'][] = "SessionID：" . session_id();
         } else {
             $data['total'][] = "SessionID：NULL";
         }
-        $data['system'] = ["-----------" . lang()['memory'] . "-----------",
-            lang()['initial_memory'] . "：" . $this->format_bytes (SYSTEM_START_MEMORY),
-            lang()['current_state'] . "：" . $this->format_bytes (memory_get_usage ()),
-            lang()['total_consumption'] . "：" . $this->format_bytes ($mem),
-            lang()['peak_occupancy'] . "：" . $this->format_bytes (memory_get_peak_usage ()),
+        $data['system'] = ["-----------" . \presty\Container::getInstance()->make("lang")->lang()['memory'] . "-----------",
+            \presty\Container::getInstance()->make("lang")->lang()['initial_memory'] . "：" . $this->format_bytes(SYSTEM_START_MEMORY),
+            \presty\Container::getInstance()->make("lang")->lang()['current_state'] . "：" . $this->format_bytes(memory_get_usage()),
+            \presty\Container::getInstance()->make("lang")->lang()['total_consumption'] . "：" . $this->format_bytes($mem),
+            \presty\Container::getInstance()->make("lang")->lang()['peak_occupancy'] . "：" . $this->format_bytes(memory_get_peak_usage()),
             "------------CPU-----------"];
-        foreach (getrusage () as $key => $value) {
-            $data['system'][] = lang()[$key]." $key ：$value";
+        foreach (getrusage() as $key => $value) {
+            $data['system'][] = \presty\Container::getInstance()->make("lang")->lang()[$key] . " $key ：$value";
         }
         $data['flow'] = $hasBeenRun;
-        $data['sql'] = app()->make('database')->getQueryRecords();
+        $data['sql'] = \presty\Container::getInstance()->make('database')->getQueryRecords();
         return $data;
-    }
-
-    public function compareFramworkVersion() {
-        $currentVersion = "v".MAIN_VERSION;
-        $ch = curl_init();
-        $arr_header = [];
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_URL, "https://api.github.com/repos/confidire/presty/releases");
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_USERAGENT, "newsn.net oauth client");
-        $arr_header[] ='Authorization:Basic '.base64_encode("13fcc5d8b933a4dda85a:2bbcca1e8547bd33eabf6ddc9f66aeee376bc583");
-        if(!empty($arr_header)){
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $arr_header);
-        }
-        $result = curl_exec($ch);
-        curl_close($ch);
-        $lastestVersion = json_decode($result,true);
-        $stopSearch = false;
-        $lastestVersionName = "";
-        while (!$stopSearch) {
-            $version = array_shift($lastestVersion);
-            $versionName = $version["name"];
-            if(empty($version) || empty($lastestVersion)) break;
-            if(!stripos($versionName,"alpha") && !stripos($versionName,"beta") && !stripos($versionName,"dev") && !stripos($versionName,"test")) {
-                    if(!$version["prerelease"]) {
-                        $version1_arr=explode(".",substr($versionName,1));
-                        $version2_arr=explode(".",MAIN_VERSION);
-                        $max_length=max(count($version1_arr),count($version2_arr));
-                        $version1_arr=array_pad($version1_arr,$max_length,0);
-                        $version2_arr=array_pad($version2_arr,$max_length,0);
-                        if(version_compare(implode(".",$version1_arr),implode(".",$version2_arr)) == -1) {
-                                $lastestVersionName = $versionName;
-                                $lastestVersionUrl = $version["html_url"];
-                                $stopSearch = true;
-                        }
-                    }
-            }
-        }
-        if(!$stopSearch) {
-            return "已是最新版本";
-        }
-        if ($currentVersion == $lastestVersionName) {
-            return "已是最新版本";
-        }
-        else return "发现新版本 - <a href=\"".$lastestVersionUrl."\">".$lastestVersionName."</a>";
     }
 }

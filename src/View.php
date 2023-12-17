@@ -32,14 +32,14 @@ class View
 
     public function __construct ()
     {
-        middleWare_getClassName ('viewInit')->listening ();
-        app ()->setArrayVar ("hasBeenRun", "view", " - [".date("Y-m-d H:i:s")."] => View_Init");
-        if(getClass("Response") == false){
+        \presty\Container::getInstance ()->make("middleWare")->getClassName ('viewInit')->listening ();
+        \presty\Container::getInstance ()->set ("hasBeenRun", "view", " - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => View_Init");
+        if(\presty\Container::getInstance ()->getClass("Response") == false){
             $content = "";
             $this->response = new Response;
-            $this->response = $this->response->create ($content, get_config ('env.response_type', 'View'), 200, [$this]);
+            $this->response = $this->response->create ($content, \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 200, [$this]);
             $this->response->setContent($content);
-            app()->instance("Response",$this->response);
+            \presty\Container::getInstance ()->instance("Response",$this->response);
         }
     }
 
@@ -49,7 +49,7 @@ class View
             if (is_string ($engine) && !empty($engine)) {
                 $engine = new $engine;
             } elseif (is_null ($engine)) {
-                if (class_exists ($class = get_config ('env.template_engine', 'presty\View\Driver\View')))
+                if (class_exists ($class = \presty\Container::getInstance ()->make("config")->get ('env.template_engine', 'presty\View\Driver\View')))
                     $engine = new $class;
                 else new NotFoundException($class,__FILE__,__LINE__,"EC100009");
             }
@@ -70,16 +70,16 @@ class View
     public function render ($content = "",$response = null)
     {
         if ($this->protectInfo) $content = "";
-        if(is_null ($response)) $response = getClass ("Response");
-        if (get_config('env.render_auto_clean',false) && $this->firstRender) ob_clean ();
+        if(is_null ($response)) $response = \presty\Container::getInstance ()->getClass ("Response");
+        if (\presty\Container::getInstance ()->make("config")->get('env.render_auto_clean',false) && $this->firstRender) ob_clean ();
         if (empty($content) || $content == "%self%") $content = $this->content;
-        if (get_config('env.auto_xss_protect',false)) {
+        if (\presty\Container::getInstance ()->make("config")->get('env.auto_xss_protect',false)) {
             $antiXss = new \presty\Response\Driver\AntiXSS();
             $content = $antiXss->antiXss ($content);
         }
         if ($this->firstRender) $this->firstRender = false;
-        if (!is_bool ($name = array_search ($this, container_newInstance ("viewQueue")->getQueue ()))) container_newInstance ("viewQueue")->set ($name, $this);
-        middleWare_getClassName ('beforeRender')->listening ();
+        if (!is_bool ($name = array_search ($this, Container::getInstance ()->makeAndSave ("viewQueue")->getQueue ()))) Container::getInstance ()->makeAndSave ("viewQueue")->set ($name, $this);
+        \presty\Container::getInstance ()->make("middleWare")->getClassName ('beforeRender')->listening ();
         ob_start ();
         $this->output ($response,$content, true);
         $this->protectInfo = false;
@@ -117,12 +117,12 @@ class View
         } else {
             $allowToLoad = true;
         }
-        $fullPath = APP . $path . get_config ('env.file_suffix', '.html');
-        app()->make("request")->setRequestPage($path,$fullPath);
+        $fullPath = APP . $path . \presty\Container::getInstance ()->make("config")->get ('view.file_suffix', '.html');
+        \presty\Container::getInstance ()->make("request")->setRequestPage($path,$fullPath);
         if ($allowToLoad) {
-            if(!env('system_debug_mode')) {
-                if (file_exists (CACHE . "viewCache" . DS . $path . "-" . md5_file ($fullPath) . get_config ("env.template_suffix"))) {
-                    $content = file_get_contents (CACHE . "viewCache" . DS  . $path . "-" . md5_file ($fullPath) . get_config ("env.template_suffix"));
+            if(!\presty\Env::get('system_debug_mode')) {
+                if (file_exists (CACHE . "viewCache" . DS . $path . "-" . md5_file ($fullPath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix"))) {
+                    $content = file_get_contents (CACHE . "viewCache" . DS  . $path . "-" . md5_file ($fullPath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix"));
                 } else {
                     $content = file_get_contents ($fullPath);
                     if(!is_dir (PUBLICDIR)){
@@ -137,14 +137,14 @@ class View
                     if(!is_dir (CACHE . "viewCache" . DS  . dirname ($path))){
                         mkdir (CACHE . "viewCache" . DS  . dirname ($path));
                     }
-                    $cacheFile = fopen(CACHE . "viewCache" . DS  . $path . "-" . md5_file ($fullPath) . get_config ("env.template_suffix")."-cache","w");
+                    $cacheFile = fopen(CACHE . "viewCache" . DS  . $path . "-" . md5_file ($fullPath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix")."-cache","w");
                     fwrite ($cacheFile,$content);
                     fclose ($cacheFile);
                 }
             } else $content = file_get_contents ($fullPath);
         }
-        else $content = file_get_contents (TEMPLATES . get_config('env.access_denied_page') . get_config('template_suffix'));
-        $response = app()->make("Response")->create ("", get_config ('env.response_type', 'View'), 200, [$this]);
+        else $content = file_get_contents (TEMPLATES . \presty\Container::getInstance ()->make("config")->get('view.access_denied_page') . \presty\Container::getInstance ()->make("config")->get('template_suffix'));
+        $response = \presty\Container::getInstance ()->make("Response")->create ("", \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 200, [$this]);
         $response->setContent($content);
         return $content;
     }

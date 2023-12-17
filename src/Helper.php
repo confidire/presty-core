@@ -14,154 +14,154 @@
 if (!function_exists ("app")) {
     function app ()
     {
-        return \presty\Container::getInstance ()->getClass('app');
+        return \presty\Container::getInstance ();
     }
 }
 
 if (!function_exists ("getClass")) {
     function getClass ($name)
     {
-        return app()->getClass($name);
+        return \presty\Container::getInstance ()->getClass($name);
     }
 }
 
 if (!function_exists ("container_instance")) {
     function container_instance ($name,$instance)
     {
-        return app()->instance($name,$instance);
+        return \presty\Container::getInstance ()->instance($name,$instance);
     }
 }
 
-if (!function_exists ("container_newInstance")) {
-    function container_newInstance ($name,$autoSave = false)
+if (!function_exists ("container_make")) {
+    function container_make ($name,$autoSave = false)
     {
-        return app()->newInstance($name,$autoSave);
+        return \presty\Container::getInstance ()->make($name,$autoSave);
     }
 }
 
 if (!function_exists ("app_make")) {
     function app_make ($key)
     {
-        return app()->make($key);
+        return \presty\Container::getInstance ()->make($key);
     }
 }
 
 if (!function_exists ("session_get")) {
     function session_get ($sessionName,$sessionValue = "")
     {
-        return app()->make("session")->get($sessionName,$sessionValue);
+        return \presty\Container::getInstance ()->make("session")->get($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("session_set")) {
     function session_set ($sessionName,$sessionValue)
     {
-        return app()->make("session")->set($sessionName,$sessionValue);
+        return \presty\Container::getInstance ()->make("session")->set($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("session_unset")) {
     function session_unset ($sessionName)
     {
-        return app()->make("session")->unset($sessionName);
+        return \presty\Container::getInstance ()->make("session")->unset($sessionName);
     }
 }
 
 if (!function_exists ("session_des")) {
     function session_des ($sessionName)
     {
-        return app()->make("session")->des($sessionName);
+        return \presty\Container::getInstance ()->make("session")->des($sessionName);
     }
 }
 
 if (!function_exists ("session_isset")) {
     function session_isset ($sessionName,$sessionValue = "")
     {
-        return app()->make("session")->isset($sessionName,$sessionValue);
+        return \presty\Container::getInstance ()->make("session")->isset($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("session_empty")) {
     function session_empty ($sessionName)
     {
-        return app()->make("session")->empty($sessionName);
+        return \presty\Container::getInstance ()->make("session")->empty($sessionName);
     }
 }
 
 if (!function_exists ("cookie_get")) {
     function cookie_get ($sessionName,$sessionValue = "")
     {
-        return app()->make("cookie")->get($sessionName,$sessionValue);
+        return \presty\Container::getInstance ()->make("cookie")->get($sessionName,$sessionValue);
     }
 }
 
 if (!function_exists ("cookie_set")) {
     function cookie_set ($cookieName, $cookieValue, $expire = 0, $path = "", $domain = "",$secure = false,$httponly = false)
     {
-        return app()->make("cookie")->set($cookieName,$cookieValue,$expire,$path,$domain,$secure,$httponly);
+        return \presty\Container::getInstance ()->make("cookie")->set($cookieName,$cookieValue,$expire,$path,$domain,$secure,$httponly);
     }
 }
 
 if (!function_exists ("cookie_des")) {
     function cookie_des ($cookieName)
     {
-        return app()->make("cookie")->des($cookieName);
+        return \presty\Container::getInstance ()->make("cookie")->des($cookieName);
     }
 }
 
 if (!function_exists ("cookie_isset")) {
     function cookie_isset ($cookieName,$cookieValue = "")
     {
-        return app()->make("cookie")->isset($cookieName,$cookieValue);
+        return \presty\Container::getInstance ()->make("cookie")->isset($cookieName,$cookieValue);
     }
 }
 
 if (!function_exists ("cookie_empty")) {
     function cookie_empty ($cookieName)
     {
-        return app()->make("cookie")->empty($cookieName);
+        return \presty\Container::getInstance ()->make("cookie")->empty($cookieName);
     }
 }
 
 if (!function_exists ("redirect")) {
     function redirect ($url = "", $remember = false)
     {
-        return app()->make("redirect")->redirect ($url, $remember);
+        return \presty\Container::getInstance ()->make("redirect")->redirect ($url, $remember);
     }
 }
 
 if (!function_exists ("redirect_backoff")) {
     function redirect_backoff ($remember = false)
     {
-        return app()->make("redirect")->backoff ($remember);
+        return \presty\Container::getInstance ()->make("redirect")->backoff ($remember);
     }
 }
 
-if (!function_exists ("container_get")) {
-    function container_get ($key)
+if (!function_exists ("container_make")) {
+    function container_make ($key)
     {
-        app()->get ($key);
+        \presty\Container::getInstance ()->make ($key);
     }
 }
 
 if (!function_exists ("container_bind")) {
     function container_bind ($key, $value)
     {
-        app()->bind ($key, $value);
+        \presty\Container::getInstance ()->bind ($key, $value);
     }
 }
 
-if (!function_exists ("container_has")) {
-    function container_has ($value)
+if (!function_exists ("container_get")) {
+    function container_get ($make)
     {
-        app()->isValueSet ($value);
+        \presty\Container::getInstance ()->get ($make);
     }
 }
 
 if (!function_exists ("middleWare_listening")) {
     function middleWare_listening ($className = "", $functionName = "", $args = "")
     {
-        return app()->make("middleWare")->listening ($className, $functionName, $args);
+        return \presty\Container::getInstance ()->make("middleWare")->listening ($className, $functionName, $args);
     }
 }
 
@@ -170,21 +170,21 @@ if (!function_exists ("middleWare_getClassName")) {
     {
         require_once DIR."MiddleWare.php";
         $hook = new presty\MiddleWare();
-        return app()->make("middleWare")->getClassName ($hookName, $returnString);
+        return \presty\Container::getInstance ()->make("middleWare")->getClassName ($hookName, $returnString);
     }
 }
 
 if (!function_exists ("middleWare_bind")) {
     function middleWare_bind ($hookName, $className)
     {
-        app()->middleWare->bind ($hookName, $className);
+        \presty\Container::getInstance ()->middleWare->bind ($hookName, $className);
     }
 }
 
 if (!function_exists ("getMainView")) {
     function getMainView ()
     {
-        app()->make("middleWare")->getMainView();
+        \presty\Container::getInstance ()->make("middleWare")->getMainView();
     }
 }
 
@@ -204,28 +204,28 @@ if (!function_exists ("globals")) {
 if (!function_exists ("config")) {
     function config ()
     {
-        return app()->newInstance("config");
+        return \presty\Container::getInstance ()->make("config");
     }
 }
 
 if (!function_exists ("get_config")) {
     function get_config ($name, $default = "")
     {
-        return app()->newInstance("config")->get($name,$default);
+        return \presty\Container::getInstance ()->make("config")->get($name,$default);
     }
 }
 
 if (!function_exists ("get_all_config")) {
     function get_all_config ()
     {
-        return app()->newInstance("config")->getAll();
+        return \presty\Container::getInstance ()->make("config")->getAll();
     }
 }
 
 if (!function_exists ("getConfigFile")) {
     function getConfigFile ($filePath)
     {
-        return app()->newInstance("config")->getFile($filePath);
+        return \presty\Container::getInstance ()->make("config")->getFile($filePath);
     }
 }
 
@@ -236,31 +236,31 @@ if (!function_exists ("env")) {
     }
 }
 
-if (!function_exists ("model")) {
-    function model ($modelClass)
+if (!function_exists ("getModelClass")) {
+    function getModelClass ($modelClass,$returnClaName = false)
     {
-        return app()->make("model")->model($modelClass);
+        return \presty\Container::getInstance ()->make("model")->getModelClass($modelClass,$returnClaName);
     }
 }
 
 if (!function_exists ("appPath")) {
     function appPath ()
     {
-        return APP.app()->make("request")->controllerApp().DS;
+        return APP.\presty\Container::getInstance ()->make("request")->controllerApp().DS;
     }
 }
 
 if (!function_exists ("appClass")) {
     function appClass ()
     {
-        return "app\\".app()->make("request")->controllerApp();
+        return "app\\".\presty\Container::getInstance ()->make("request")->controllerApp();
     }
 }
 
 if (!function_exists ("parseGlobalUrl")) {
     function parseGlobalUrl (\presty\Request $request)
     {
-        $parser = get_config('env.url_parser', 'presty\urlParser\Presty');
+        $parser = \presty\Container::getInstance ()->make("config")->get('env.url_parser', 'presty\urlParser\Presty');
         $parser = new $parser;
         $url = $parser->init();
         $url = $parser->parse($url);
@@ -273,7 +273,7 @@ if (!function_exists ("parseGlobalUrl")) {
 if (!function_exists ("parseUrl")) {
     function parseUrl ($url)
     {
-        $parser = get_config('env.url_parser', 'presty\urlParser\Presty');
+        $parser = \presty\Container::getInstance ()->make("config")->get('env.url_parser', 'presty\urlParser\Presty');
         $parser = new $parser;
         $url = $parser->parse($url);
         return $url;
@@ -317,8 +317,8 @@ if (!function_exists ("scanFiles")) {
 if (!function_exists ("lang")) {
     function lang ($index = "")
     {
-        if(empty($index)) return app()->newInstance("lang")->lang();
-        else return app()->newInstance("lang")->lang()[$index];
+        if(empty($index)) return \presty\Container::getInstance ()->make("lang")->lang();
+        else return \presty\Container::getInstance ()->make("lang")->lang()[$index];
     }
 }
 
@@ -326,7 +326,7 @@ if (!function_exists ("response")) {
     function response ($data,$args = [],$code = 200)
     {
         $type = "View";
-        return app()->make("Response")->create($data,$type,$code,$args);
+        return \presty\Container::getInstance ()->make("Response")->create($data,$type,$code,$args);
     }
 }
 
@@ -334,7 +334,7 @@ if (!function_exists ("json")) {
     function json ($data,$args = [],$code = 200)
     {
         $type = "json";
-        return app()->make("Response")->create($data,$type,$code,$args);
+        return \presty\Container::getInstance ()->make("Response")->create($data,$type,$code,$args);
     }
 }
 
@@ -342,7 +342,7 @@ if (!function_exists ("jsonp")) {
     function jsonp ($data,$args = [],$code = 200)
     {
         $type = "jsonp";
-        return app()->make("Response")->create($data,$type,$code,$args);
+        return \presty\Container::getInstance ()->make("Response")->create($data,$type,$code,$args);
     }
 }
 
@@ -350,63 +350,63 @@ if (!function_exists ("html")) {
     function html ($data,$args = [],$code = 200)
     {
         $type = "html";
-        return app()->make("Response")->create($data,$type,$code,$args);
+        return \presty\Container::getInstance ()->make("Response")->create($data,$type,$code,$args);
     }
 }
 
 if (!function_exists ("getRootPath")) {
     function getRootPath ()
     {
-        return app()->getrootPath();
+        return \presty\Container::getInstance ()->getrootPath();
     }
 }
 
 if (!function_exists ("getSystemPath")) {
     function getSystemPath ()
     {
-        return app()->systemPath();
+        return \presty\Container::getInstance ()->systemPath();
     }
 }
 
 if (!function_exists ("getAppPath")) {
     function getAppPath ()
     {
-        return app()->appPath();
+        return \presty\Container::getInstance ()->appPath();
     }
 }
 
 if (!function_exists ("getConfigPath")) {
     function getConfigPath ()
     {
-        return app()->configPath();
+        return \presty\Container::getInstance ()->configPath();
     }
 }
 
 if (!function_exists ("getModuleGuidesPath")) {
     function getModuleGuidesPath ()
     {
-        return app()->moduleGuidesPath();
+        return \presty\Container::getInstance ()->moduleGuidesPath();
     }
 }
 
 if (!function_exists ("getPublicPath")) {
     function getPublicPath ()
     {
-        return app()->PublicPath();
+        return \presty\Container::getInstance ()->PublicPath();
     }
 }
 
 if (!function_exists ("getPageCacheStatus")) {
     function getPageCacheStatus ()
     {
-        $request = app()->make("request");
+        $request = \presty\Container::getInstance ()->make("request");
         $pageName = $request->requestPage();
         $pagePath = $request->requestPagePath();
         if(empty($pagePath)) return 0;
-        if(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix"))){
+        if(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->make("config")->get ("env.template_suffix"))){
             return 0;
         }
-        elseif(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . get_config ("env.template_suffix")."-cache")) {
+        elseif(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->make("config")->get ("env.template_suffix")."-cache")) {
             return 1;
         }
         else return 2;
@@ -420,7 +420,7 @@ if(!function_exists("checkArgs")){
                 checkArgs($arg);
             }
         }else{
-            if(!array_key_exists($args,app()->make("request")->controllerArgs())) die(json_encode(["code" => -101, "msg" => "Insufficient parameters", "data" => []],JSON_UNESCAPED_UNICODE));
+            if(!array_key_exists($args,\presty\Container::getInstance ()->make("request")->controllerArgs())) die(json_encode(["code" => -101, "msg" => "Insufficient parameters", "data" => []],JSON_UNESCAPED_UNICODE));
         }
     }
 }
@@ -438,7 +438,7 @@ if(!function_exists("createDs")){
 if(!function_exists("curl_send")){
     function curl_send($url,$method = "GET",$data = array())
     {
-        $ds = createDs(get_config("verify.ds.salt"));
+        $ds = createDs(\presty\Container::getInstance ()->make("config")->get("verify.ds.salt"));
         header("DS:".$ds);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
@@ -455,7 +455,7 @@ if(!function_exists("curl_send")){
 if(!function_exists("curl_get")){
     function curl_get($url,$data = array())
     {
-        $ds = createDs(get_config("verify.ds.salt"));
+        $ds = createDs(\presty\Container::getInstance ()->make("config")->get("verify.ds.salt"));
         header("DS:".$ds);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
@@ -472,7 +472,7 @@ if(!function_exists("curl_get")){
 if(!function_exists("curl_post")){
     function curl_post($url,$data = array())
     {
-        $ds = createDs(get_config("verify.ds.salt"));
+        $ds = createDs(\presty\Container::getInstance ()->make("config")->get("verify.ds.salt"));
         header("DS:".$ds);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);

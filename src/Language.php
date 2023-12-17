@@ -25,16 +25,16 @@ class Language
 
     public function __construct ($app = "")
     {
-        if(empty($app)) $app = $this->app();
+        if(empty($app)) $app = \presty\Container::getInstance();
         $this->app = $app;
         $this->config = $this->config ();
-        $this->header = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        $this->header = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? "";
     }
 
     public function load ($name = "")
     {
-        if ($this->app->newInstance("config")->get('language.judge_header_info',false)) $lang = $this->chooseHeaderLanguage ($this->parseHeader ($_SERVER['HTTP_ACCEPT_LANGUAGE']));
-        if(empty($name)) $lang = $this->app->newInstance("config")->get('language.default_languages',"zh-cn");
+        if ($this->app->make("config")->get('language.judge_header_info',false)) $lang = $this->chooseHeaderLanguage ($this->parseHeader ($_SERVER['HTTP_ACCEPT_LANGUAGE']));
+        if(empty($name)) $lang = $this->app->make("config")->get('language.default_languages',"zh-cn");
         $this->lang = require_once (LANGUAGES . strtolower($lang) . ".php");
         return $this->lang;
     }
@@ -79,14 +79,14 @@ class Language
                 }
             }
             if(count ($result) == 1){
-                if($this->app->newInstance("config")->get('language.limit_load_all_language',false) && !in_array ($result,$this->app->newInstance("config")->get('language.allow_load_languages',['zh-cn']))){
+                if($this->app->make("config")->get('language.limit_load_all_language',false) && !in_array ($result,$this->app->make("config")->get('language.allow_load_languages',['zh-cn']))){
                     continue;
                 }
                 $info = $result[0];
                 break;
             }else{
                 foreach ($result as $i) {
-                    if($this->app->newInstance("config")->get('language.limit_load_all_language',false) && !in_array ($i,$this->app->newInstance("config")->get('language.allow_load_languages',['zh-cn']))){
+                    if($this->app->make("config")->get('language.limit_load_all_language',false) && !in_array ($i,$this->app->make("config")->get('language.allow_load_languages',['zh-cn']))){
                         continue;
                     }
                     $info = $i;
@@ -94,7 +94,7 @@ class Language
                 }
             }
         }
-        if(empty($info)) $info = $this->app->newInstance("config")->get('language.default_languages',"zh-cn");
+        if(empty($info)) $info = $this->app->make("config")->get('language.default_languages',"zh-cn");
         return $info;
     }
 
@@ -125,10 +125,5 @@ class Language
     public function lang ()
     {
         return $this->lang ?? false;
-    }
-
-    private function app()
-    {
-        return \presty\Container::getInstance ()->getClass('app');
     }
 }

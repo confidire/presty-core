@@ -25,7 +25,8 @@ class MiddleWare
     protected $functionName = "";
 
     public function __construct ($app = "") {
-        if(is_object ($app)) if(!$app->has("middleWare")) $app->setVar("middleWare",require CONFIG . "MiddleWare.php");
+        if(is_object ($app)) if(!$app->get("middleWare")) $app->set("middleWare",require CONFIG . "MiddleWare.php");
+        \presty\Container::getInstance()->set ("hasBeenRun", "middleware", " - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => MiddleWare_Init");
     }
 
     //监听并实例化指定中间件
@@ -50,7 +51,7 @@ class MiddleWare
 
     public function getClassName ($middleWareName, $returnString = false,$middleWare = [])
     {
-        if(empty($middleWare)) $middleWare = app()->has("middleWare","",true);
+        if(empty($middleWare)) $middleWare = Container::getInstance ()->get("middleWare",true);
         if (isset($middleWare[$middleWareName])) {
             if ($returnString) return $middleWare[$middleWareName];
             else {
@@ -92,6 +93,6 @@ class MiddleWare
 
     public function bind ($middlewareName, $className)
     {
-        app()->setArrayVar("middleware",$middlewareName,$className);
+        \presty\Container::getInstance ()->set("middleware",$middlewareName,$className);
     }
 }
