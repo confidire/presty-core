@@ -36,13 +36,13 @@ class View
         if(empty($fileContent)) return "";
         $this->data = $data;
         \presty\Container::getInstance ()->set("hasBeenRun","tpl"," - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => Template_Engine_Init");
-        $this->url = \presty\Container::getInstance ()->make("request")->siteUrl();
-        \presty\Container::getInstance ()->make("middleWare")->getClassName ('beforeParseFile')->listening ([$this->fileContent]);
+        $this->url = \presty\Container::getInstance ()->makeAndSave("request")->siteUrl();
+        \presty\Container::getInstance ()->makeAndSave("middleWare")->getClassName ('beforeParseFile')->listening ([$this->fileContent]);
         $this->fileContent = $fileContent;
-        $this->templateEnginePrefix = \presty\Container::getInstance ()->make("config")->get("View.template_engine_prefix","{{");
-        $this->templateEngineSuffix = \presty\Container::getInstance ()->make("config")->get("View.template_engine_suffix","}}");
-        $this->variablePrefix = \presty\Container::getInstance ()->make("config")->get("View.variable_prefix","$");
-        $this->constantPrefix = \presty\Container::getInstance ()->make("config")->get("View.constant_prefix","%");
+        $this->templateEnginePrefix = \presty\Container::getInstance ()->makeAndSave("config")->get("View.template_engine_prefix","{{");
+        $this->templateEngineSuffix = \presty\Container::getInstance ()->makeAndSave("config")->get("View.template_engine_suffix","}}");
+        $this->variablePrefix = \presty\Container::getInstance ()->makeAndSave("config")->get("View.variable_prefix","$");
+        $this->constantPrefix = \presty\Container::getInstance ()->makeAndSave("config")->get("View.constant_prefix","%");
         $this->parseNotes ();
         $this->parseVars ();
         $this->parseConstant ();
@@ -52,7 +52,7 @@ class View
         $this->parseFunction();
         $this->parseIf ();
         $this->parseForeach ();
-        \presty\Container::getInstance ()->make("middleWare")->getClassName ('afterParseFile')->listening ([$this->fileContent]);
+        \presty\Container::getInstance ()->makeAndSave("middleWare")->getClassName ('afterParseFile')->listening ([$this->fileContent]);
         return $this->fileContent;
     }
 
@@ -64,7 +64,7 @@ class View
     {
         $isMatched = preg_match_all ('/'.$this->templateEnginePrefix.'include(.*?)'.$this->templateEngineSuffix.'/', $this->fileContent, $matches);
         if($isMatched != 0) {
-            if(is_dir (\presty\Container::getInstance ()->getAppPath."config")) $viewMapping = require \presty\Container::getInstance ()->getAppPath."config".DS.\presty\Container::getInstance ()->make("config")->get ("view.view_mapping_config_file_name","ViewMapping").".php";
+            if(is_dir (\presty\Container::getInstance ()->getAppPath."config")) $viewMapping = require \presty\Container::getInstance ()->getAppPath."config".DS.\presty\Container::getInstance ()->makeAndSave("config")->get ("view.view_mapping_config_file_name","ViewMapping").".php";
             else $viewMapping = [];
             foreach ($matches[0] as $key => $value) {
                 $args = $matches[1][$key];
@@ -77,10 +77,10 @@ class View
                 $content = "";
                 if(isset($viewMapping[$args["name"]])){
                     if(substr ($viewMapping[$args["name"]],0,1) == "/") $viewMapping[$args["name"]] = substr ($viewMapping[$args["name"]],1);
-                    $content = file_get_contents (\presty\Container::getInstance ()->getAppPath.$viewMapping[$args["name"]].\presty\Container::getInstance ()->make("config")->get ("view.file_suffix",".html"));
+                    $content = file_get_contents (\presty\Container::getInstance ()->getAppPath.$viewMapping[$args["name"]].\presty\Container::getInstance ()->makeAndSave("config")->get ("view.file_suffix",".html"));
                 }
-                else if(file_exists (\presty\Container::getInstance ()->getAppPath.$args["name"].\presty\Container::getInstance ()->make("config")->get ("view.file_suffix",".html"))){
-                    $content = file_get_contents (\presty\Container::getInstance ()->getAppPath.$args["name"].\presty\Container::getInstance ()->make("config")->get ("view.file_suffix",".html"));
+                else if(file_exists (\presty\Container::getInstance ()->getAppPath.$args["name"].\presty\Container::getInstance ()->makeAndSave("config")->get ("view.file_suffix",".html"))){
+                    $content = file_get_contents (\presty\Container::getInstance ()->getAppPath.$args["name"].\presty\Container::getInstance ()->makeAndSave("config")->get ("view.file_suffix",".html"));
                 }
                 else new NotFoundException($args["name"]."，文件不存在于根目录或映射配置文件中未定义",__FILE__,__LINE__,"EC100024");
                 $this->fileContent = str_replace ($value,$content,$this->fileContent);

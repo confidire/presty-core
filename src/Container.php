@@ -68,7 +68,7 @@ class Container
         return $this;
     }
 
-    public function make ($key)
+    public function make ($key,$args = [])
     {
         $key = $this->liftAlias ($key);
 
@@ -77,7 +77,6 @@ class Container
                 $this->make ($k, $value);
             }
         }
-
 
         if(isset($this->instances[$key])){
             return $this->instances[$key];
@@ -90,15 +89,29 @@ class Container
                 return $class;
             }
         }elseif(class_exists ($key)){
-            $class = new $key;
-            return $class;
+            return $this->invokeClass($key,$args);
         }
         return false;
     }
 
-    public function makeAndSave ($key)
+    public function isInstanceExists($key) {
+        return array_key_exists($key,$this->instances);
+    }
+
+    public function isBinded($key) {
+        return isset($this->bind[$key]);
+    }
+
+    public function makeAndSave ($key,$args = [])
     {
+
         $key = $this->liftAlias ($key);
+
+        if(is_array($key)) {
+            foreach ($key as $k => $value) {
+                $this->makeAndSave ($k, $value);
+            }
+        }
 
         if(isset($this->instances[$key])){
             return $this->instances[$key];
@@ -111,7 +124,7 @@ class Container
             $this->instance ($key,$class);
             return $class;
         }elseif(class_exists ($key)){
-            $class = new $key;
+            $class = $this->invokeClass($key,$args);
             $this->instance ($key,$class);
             return $class;
         }
@@ -177,6 +190,7 @@ class Container
 
     public function invokeClass ($class, $args = [])
     {
+        // var_dump($class);
         try {
             $reflect = new ReflectionClass($class);
         } catch (\ReflectionException $e) {

@@ -87,7 +87,7 @@ class Database
             $this->dbprefix = $dbprefix;
             $this->dbfile = $dbfile;
             $this->dbtable = $dbtable;
-            if (\presty\Container::getInstance ()->make("config")->get ('database_auto_load', false)) {
+            if (\presty\Container::getInstance ()->makeAndSave("config")->get ('database_auto_load', false)) {
                 $this->init ();
             }
             $this->firstRun = false;

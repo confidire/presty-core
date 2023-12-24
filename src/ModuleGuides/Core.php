@@ -35,9 +35,8 @@ class Core
         $app->instance ("lang",$langClass);
 
         //监听App_Init
-        $hook = (new \presty\MiddleWare($app))->getClassName('appInit',false,$app->get("middleWare"))->listening ();
-        $hook = (new \presty\MiddleWare($app))->getClassName('appInit',false,$app->get("middleWare"))->listening ();
-        MiddleWare::getClassName('appInit',false,$app->get("middleWare"))->listening ();
+        $hook = (new \presty\MiddleWare($app))->getClassName('appInit',false,$app->get("middleWareConfig"))->listening ();
+        MiddleWare::getClassName('appInit',false,$app->get("middleWareConfig"))->listening ();
 
         //注册助手函数
         require_once DIR . "Helper.php";

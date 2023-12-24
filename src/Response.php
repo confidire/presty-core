@@ -73,20 +73,20 @@ class Response
             }
         }
         if(\presty\Env::get('system_debug_mode')) {
-            $request = \presty\Container::getInstance ()->make("request");
+            $request = \presty\Container::getInstance ()->makeAndSave("request");
             $pageName = $request->requestPage ();
             $pagePath = $request->requestPagePath ();
             $pageStatus = $this->getPageCacheStatus ();
             switch ($pageStatus) {
                 case 1 :
-                    unlink (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix") . "-cache");
-                    $file = fopen (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix"), "w");
+                    unlink (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->makeAndSave("config")->get ("view.template_suffix") . "-cache");
+                    $file = fopen (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->makeAndSave("config")->get ("view.template_suffix"), "w");
                     fwrite ($file, $this->content);
                     fclose ($file);
                     break;
                 case 2 :
                     if(!\presty\Env::get('system_debug_mode')) {
-                        $file = fopen (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix"), "w");
+                        $file = fopen (CACHE . "viewCache" . DS . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->makeAndSave("config")->get ("view.template_suffix"), "w");
                         fwrite ($file, $this->content);
                         fclose ($file);
                         break;
@@ -136,14 +136,14 @@ class Response
 
     protected function getPageCacheStatus ()
     {
-        $request = \presty\Container::getInstance ()->make("request");
+        $request = \presty\Container::getInstance ()->makeAndSave("request");
         $pageName = $request->requestPage();
         $pagePath = $request->requestPagePath();
         if(empty($pagePath)) return 0;
-        if(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix"))){
+        if(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->makeAndSave("config")->get ("view.template_suffix"))){
             return 0;
         }
-        elseif(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->make("config")->get ("view.template_suffix")."-cache")) {
+        elseif(file_exists (CACHE . "viewCache" . DS  . $pageName . "-" . md5_file ($pagePath) . \presty\Container::getInstance ()->makeAndSave("config")->get ("view.template_suffix")."-cache")) {
             return 1;
         }
         else return 2;

@@ -21,13 +21,15 @@ class Http
 
     public function register (\presty\Core $app)
     {
-        $app->newInstance ("http",true);
-        $app->newInstance ("request",true);
-        $app->newInstance ("Response",true);
+        $this->app = $app;
+        $app->makeAndSave ("http");
+        $app->makeAndSave ("request");
+        $app->makeAndSave ("Response");
+        $app->makeAndSave ("Route");
     }
 
-    public function init (\presty\Core $app)
+    public function init ()
     {
-        return $app->make("http")->init($app)->operate($app->make("request"));
+        return $this->app->make("http")->init($this->app)->operate($this->app->makeAndSave("request"));
     }
 }

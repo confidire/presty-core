@@ -19,9 +19,9 @@ class Exception
 {
     static function throw ($file, $line, $code = "EC100001", $type = "System Error", $title = "",$trace = "")
     {
-        if ((Container::getInstance ()->make("config")->get ('env.error_auto_clean') !== null && Container::getInstance ()->make("config")->get('env.error_auto_clean'))) {
+        if ((Container::getInstance ()->makeAndSave("config")->get ('env.error_auto_clean') !== null && Container::getInstance ()->makeAndSave("config")->get('env.error_auto_clean'))) {
             ob_clean ();
-        } elseif ((Container::getInstance ()->make("config")->get ('env.error_auto_clean') === null && env ('system.debug.mode', false))) {
+        } elseif ((Container::getInstance ()->makeAndSave("config")->get ('env.error_auto_clean') === null && env ('system.debug.mode', false))) {
             ob_clean ();
         }
         if (isset(self::lang()[$code]) && !empty($title)) $errStr = self::lang()[$code] . " : ".$title;
@@ -32,15 +32,15 @@ class Exception
             Container::getInstance ()->make("debugMode")->output ();
         }
         $errDetail = "[ presty " . VERSION . " ]\r\n错误时间： " . date ('Y-m-d H:i:s') . "\r\n错误原因： $errStr\r\n错误网站： " . ($_SERVER['HTTP_HOST'] ?? "") . "\r\n错误文件： $file\r\n错误行数： $line\r\n运行状态： [\r\n" . implode ("\r\n", Container::getInstance ()->get("hasBeenRun")) . "\r\n]";
-        if (Container::getInstance ()->make("config")->get('env.save_error_log')) {
+        if (Container::getInstance ()->makeAndSave("config")->get('env.save_error_log')) {
             \presty\Facade\Log::errorOut ($errDetail);
         }
-        if (Container::getInstance ()->make("config")->get('env.save_running_log')) {
+        if (Container::getInstance ()->makeAndSave("config")->get('env.save_running_log')) {
             $Detail = "[ presty " . VERSION . " ] \r\n 执行时间： " . date ('Y-m-d H:i:s') . "\r\n 运行结果： " . $errStr . " \r\n User-Agent： " . $_SERVER['HTTP_USER_AGENT'];
             \presty\Facade\Log::logOut ($Detail);
         }
-        if (Container::getInstance ()->make("config")->get('env.send_error_log')) {
-            $to = Container::getInstance ()->make("config")->get('env.developer_email');                                 // 邮件接收者
+        if (Container::getInstance ()->makeAndSave("config")->get('env.send_error_log')) {
+            $to = Container::getInstance ()->makeAndSave("config")->get('env.developer_email');                                 // 邮件接收者
             $subject = "[ presty " . VERSION . " ] Presty框架运行报错提示邮件";                // 邮件标题
             $message = $errDetail;                                                   // 邮件正文
             $from = "Presty框架";                                              // 邮件发送者
@@ -54,8 +54,8 @@ class Exception
 
     static public function render (array $data = [])
     {
-        $path = Template::getTemplatePath(Container::getInstance ()->make("config")->get("env.run_exception_template","RunException"));
-        if(Container::getInstance ()->make("request")->isJson()) $response = Container::getInstance ()->make("response")->create (self::renderAsArray ($data), 'json', 500)->handle();
+        $path = Template::getTemplatePath(Container::getInstance ()->makeAndSave("config")->get("env.run_exception_template","RunException"));
+        if(Container::getInstance ()->makeAndSave("request")->isJson()) $response = Container::getInstance ()->make("response")->create (self::renderAsArray ($data), 'json', 500)->handle();
         else $response = Container::getInstance ()->make("response")->create (self::getRenderContent ($path,$data), 'html', 500, [app ()->make("viewQueue")->getMainView ()]);
         return $response;
     }
@@ -68,8 +68,8 @@ class Exception
     public static function renderAsArray (array $data = [])
     {
         $result = [];
-        $request = Container::getInstance ()->make("request");
-        if(self::env("system.debug_mode",false) || Container::getInstance ()->make("config")->get ('env.show_error_detail',false)){
+        $request = Container::getInstance ()->makeAndSave("request");
+        if(self::env("system.debug_mode",false) || Container::getInstance ()->makeAndSave("config")->get ('env.show_error_detail',false)){
             if(!empty($data)){
                 $result = [
                     "code" => $data["code"],
@@ -117,8 +117,8 @@ class Exception
 
     private static function lang ($index = "")
     {
-        if(empty($index)) return Container::getInstance ()->make("lang")->lang();
-        else return Container::getInstance ()->make("lang")->self::lang()[$index];
+        if(empty($index)) return Container::getInstance ()->makeAndSave("lang")->lang();
+        else return Container::getInstance ()->makeAndSave("lang")->self::lang()[$index];
     }
 
     private static function env ($name,$default = "")

@@ -106,7 +106,7 @@ class Request
 
         $this->get = $_GET;
 
-        $this->config = \presty\Container::getInstance ()->make("config")->getAll();
+        $this->config = \presty\Container::getInstance ()->makeAndSave("config")->getAll();
 
         $this->env = $_ENV;
 
@@ -142,7 +142,7 @@ class Request
 
     public function __call ($name, $arguments)
     {
-        $this->env = \presty\Container::getInstance ()->make("config")->getALl ();
+        $this->env = \presty\Container::getInstance ()->makeAndSave("config")->getALl ();
         $this->global = $GLOBALS;
         if (function_exists ($name) && $name != "env") {
             call_user_func_array ($name, $arguments);

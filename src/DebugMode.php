@@ -191,30 +191,30 @@ document.cookie = "presty_show_running_trace="+history.join("|")
             $uri = 'cmd:' . implode(' ', $_SERVER['argv']);
         }
         $data['total'] = [
-            \presty\Container::getInstance()->make("lang")->lang()['running_time'] . "：$runtime ms " . \presty\Container::getInstance()->make("lang")->lang()['throughput'] . "：" . $reqs . " req/s",
-            \presty\Container::getInstance()->make("lang")->lang()['require_info'] . "：" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']) . ' ' . $uri,
-            \presty\Container::getInstance()->make("lang")->lang()['server_info'] . "：" . php_uname("a"),
-            \presty\Container::getInstance()->make("lang")->lang()['framework_version'] . "：" . VERSION,
-            \presty\Container::getInstance()->make("lang")->lang()['php_version'] . "：" . phpversion(),
-            \presty\Container::getInstance()->make("lang")->lang()['zend_version'] . "：" . zend_version(),
-            \presty\Container::getInstance()->make("lang")->lang()['client_version'] . "：" . ($_SERVER['HTTP_USER_AGENT'] ?? ""),
-            \presty\Container::getInstance()->make("lang")->lang()['interface_type'] . "：" . php_sapi_name(),
-            \presty\Container::getInstance()->make("lang")->lang()['process_id'] . "：" . getmypid(),
-            \presty\Container::getInstance()->make("lang")->lang()['index_node'] . "：" . getmyinode(),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['running_time'] . "：$runtime ms " . \presty\Container::getInstance()->makeAndSave("lang")->lang()['throughput'] . "：" . $reqs . " req/s",
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['require_info'] . "：" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']) . ' ' . $uri,
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['server_info'] . "：" . php_uname("a"),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['framework_version'] . "：" . VERSION,
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['php_version'] . "：" . phpversion(),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['zend_version'] . "：" . zend_version(),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['client_version'] . "：" . ($_SERVER['HTTP_USER_AGENT'] ?? ""),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['interface_type'] . "：" . php_sapi_name(),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['process_id'] . "：" . getmypid(),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['index_node'] . "：" . getmyinode(),
         ];
         if (session_id()) {
             $data['total'][] = "SessionID：" . session_id();
         } else {
             $data['total'][] = "SessionID：NULL";
         }
-        $data['system'] = ["-----------" . \presty\Container::getInstance()->make("lang")->lang()['memory'] . "-----------",
-            \presty\Container::getInstance()->make("lang")->lang()['initial_memory'] . "：" . $this->format_bytes(SYSTEM_START_MEMORY),
-            \presty\Container::getInstance()->make("lang")->lang()['current_state'] . "：" . $this->format_bytes(memory_get_usage()),
-            \presty\Container::getInstance()->make("lang")->lang()['total_consumption'] . "：" . $this->format_bytes($mem),
-            \presty\Container::getInstance()->make("lang")->lang()['peak_occupancy'] . "：" . $this->format_bytes(memory_get_peak_usage()),
+        $data['system'] = ["-----------" . \presty\Container::getInstance()->makeAndSave("lang")->lang()['memory'] . "-----------",
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['initial_memory'] . "：" . $this->format_bytes(SYSTEM_START_MEMORY),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['current_state'] . "：" . $this->format_bytes(memory_get_usage()),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['total_consumption'] . "：" . $this->format_bytes($mem),
+            \presty\Container::getInstance()->makeAndSave("lang")->lang()['peak_occupancy'] . "：" . $this->format_bytes(memory_get_peak_usage()),
             "------------CPU-----------"];
         foreach (getrusage() as $key => $value) {
-            $data['system'][] = \presty\Container::getInstance()->make("lang")->lang()[$key] . " $key ：$value";
+            $data['system'][] = \presty\Container::getInstance()->makeAndSave("lang")->lang()[$key] . " $key ：$value";
         }
         $data['flow'] = $hasBeenRun;
         $data['sql'] = \presty\Container::getInstance()->make('database')->getQueryRecords();

@@ -26,7 +26,7 @@ class Router
 
     public function setEngine ($engine = null): Router
     {
-        $this->engine = $engine ?? Container::getInstance ()->invokeClass(\presty\Container::getInstance ()->make("config")->get('env.url_parser', 'presty\Router\Driver\Presty'));
+        $this->engine = $engine ?? Container::getInstance ()->invokeClass(\presty\Container::getInstance ()->makeAndSave("config")->get('env.url_parser', 'presty\Router\Driver\Presty'));
 
         return $this;
     }
@@ -50,15 +50,7 @@ class Router
             return false;
         }
         \presty\Container::getInstance()->set("hasBeenRun","rInit"," - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => Router_Init");
-        \presty\Container::getInstance ()->make("middleWare")->getClassName ('routerInit')->listening ([$query_file]);
-        if (!\presty\Container::getInstance()->has("route")) {
-            $route = [];
-            $this->scanFiles (ROUTE, true, function ($a) use($route) {
-                $data = include ($a);
-                $route = array_merge ($route, $data);
-                \presty\Container::getInstance()->setVar("route",$route);
-            });
-        }
+        \presty\Container::getInstance ()->makeAndSave("middleWare")->getClassName ('routerInit')->listening ([$query_file]);
         return $query_file;
     }
 
@@ -73,7 +65,7 @@ class Router
             $class = "app\\"."Entrance\\".ucfirst($url['app']);
             $opinion = (new $class)->entrance($url) ?? true;
             if(is_file(APP.ucfirst($url['app']).".php") && !$opinion){
-                $this->response = \presty\Container::getInstance()->make("Response")->create (Template::getTemplateContent(\presty\Container::getInstance ()->make("config")->get("env.access_denied_page","AccessDenied")), \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
+                $this->response = \presty\Container::getInstance()->make("Response")->create (Template::getTemplateContent(\presty\Container::getInstance ()->makeAndSave("config")->get("env.access_denied_page","AccessDenied")), \presty\Container::getInstance ()->makeAndSave("config")->get ('view.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
                 return $this->response->handle();
             }
         }
@@ -87,7 +79,7 @@ class Router
         $className = "\\" . "app" . "\\" . $url["app"] . "\\" . "controller" . "\\" . $url["controller"];
         $class = new $className;
         if (method_exists ($class, $url['function'])) {
-            $mdwClass = \presty\Container::getInstance()->make("middleWare");
+            $mdwClass = \presty\Container::getInstance()->makeAndSave("middleWare");
             $middlewares = $mdwClass->parseFunctionAttributesMiddleWare($class,$url['function']);
             if(!empty($middlewares)){
                 foreach ($middlewares as $middleware) {
@@ -113,18 +105,18 @@ class Router
         } elseif (method_exists ($class, "__call")) {
             $pageContent = call_user_func_array ([$class, '__call'], [$url['function'], [$request]]);
         } else {
-            if(empty(\presty\Container::getInstance ()->make("config")->get ('env.404_template',''))) new NotFoundException($className . "->" . $url['function']."()",__FILE__,__LINE__,"EC100010");
+            if(empty(\presty\Container::getInstance ()->makeAndSave("config")->get ('env.404_template',''))) new NotFoundException($className . "->" . $url['function']."()",__FILE__,__LINE__,"EC100010");
             else {
-                $this->response = \presty\Container::getInstance()->make("Response")->create (Template::getTemplateContent(\presty\Container::getInstance ()->make("config")->get('env.404_template','')), \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
+                $this->response = \presty\Container::getInstance()->make("Response")->create (Template::getTemplateContent(\presty\Container::getInstance ()->makeAndSave("config")->get('env.404_template','')), \presty\Container::getInstance ()->makeAndSave("config")->get ('view.response_type', 'View'), 404, [app ()->make("viewQueue")->getMainView ()]);
                 return $this->response->handle();
             }
         }
         if (gettype ($pageContent) == "NULL") {
             new InvalidReturnException(lang()["controller_empty_return"],__FILE__,__LINE__);
         }
-        elseif(is_string ($pageContent)) $this->response = \presty\Container::getInstance()->make("Response")->create ($pageContent, \presty\Container::getInstance ()->make("config")->get ('view.response_type', 'View'), 200, [\presty\Container::getInstance()->make("View")]);
+        elseif(is_string ($pageContent)) $this->response = \presty\Container::getInstance()->make("Response")->create ($pageContent, \presty\Container::getInstance ()->makeAndSave("config")->get ('view.response_type', 'View'), 200, [\presty\Container::getInstance()->make("View")]);
         else $this->response = $pageContent;
-        \presty\Container::getInstance ()->make("middleWare")->getClassName ('afterRouter')->listening ([$query_file, $url]);
+        \presty\Container::getInstance ()->makeAndSave("middleWare")->getClassName ('afterRouter')->listening ([$query_file, $url]);
         if(\presty\Env::get('system_debug_mode')) {
             return $this->response->handle ();
         }else{

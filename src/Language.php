@@ -33,8 +33,8 @@ class Language
 
     public function load ($name = "")
     {
-        if ($this->app->make("config")->get('language.judge_header_info',false)) $lang = $this->chooseHeaderLanguage ($this->parseHeader ($_SERVER['HTTP_ACCEPT_LANGUAGE']));
-        if(empty($name)) $lang = $this->app->make("config")->get('language.default_languages',"zh-cn");
+        if ($this->app->makeAndSave("config")->get('language.judge_header_info',false)) $lang = $this->chooseHeaderLanguage ($this->parseHeader ($_SERVER['HTTP_ACCEPT_LANGUAGE']));
+        if(empty($name)) $lang = $this->app->makeAndSave("config")->get('language.default_languages',"zh-cn");
         $this->lang = require_once (LANGUAGES . strtolower($lang) . ".php");
         return $this->lang;
     }
@@ -79,14 +79,14 @@ class Language
                 }
             }
             if(count ($result) == 1){
-                if($this->app->make("config")->get('language.limit_load_all_language',false) && !in_array ($result,$this->app->make("config")->get('language.allow_load_languages',['zh-cn']))){
+                if($this->app->makeAndSave("config")->get('language.limit_load_all_language',false) && !in_array ($result,$this->app->makeAndSave("config")->get('language.allow_load_languages',['zh-cn']))){
                     continue;
                 }
                 $info = $result[0];
                 break;
             }else{
                 foreach ($result as $i) {
-                    if($this->app->make("config")->get('language.limit_load_all_language',false) && !in_array ($i,$this->app->make("config")->get('language.allow_load_languages',['zh-cn']))){
+                    if($this->app->makeAndSave("config")->get('language.limit_load_all_language',false) && !in_array ($i,$this->app->makeAndSave("config")->get('language.allow_load_languages',['zh-cn']))){
                         continue;
                     }
                     $info = $i;
@@ -94,7 +94,7 @@ class Language
                 }
             }
         }
-        if(empty($info)) $info = $this->app->make("config")->get('language.default_languages',"zh-cn");
+        if(empty($info)) $info = $this->app->makeAndSave("config")->get('language.default_languages',"zh-cn");
         return $info;
     }
 

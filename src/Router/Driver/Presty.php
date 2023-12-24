@@ -32,17 +32,17 @@ class Presty extends Router implements RouterInterface
                 elseif(count($tempUrl) == 1 && $tempUrl[0] == "") $url = "/index";
             }
         }
-        if(\presty\Container::getInstance ()->make("config")->get("env.use_system_index_route",true) && $url == "/index" ||  preg_match('/\/\?.*/', $url, $matches)) {
+        if(\presty\Container::getInstance ()->makeAndSave("config")->get("env.use_system_index_route",true) && $url == "/index" ||  preg_match('/\/\?.*/', $url, $matches)) {
             return ["app" => DEFAULT_APP_NAME, "path" => DS, "controller" => "Index", "function" => "index", "vars" => $tempVars];
         }
-        Route::parse($url,\presty\Container::getInstance()->get("route"),
-            function($tempValue,$combine){
-                header("Location: ".$tempValue.$combine);
-            },
-            function ($tempValue,$combine){
-                header("Location: http://".$_SERVER['HTTP_HOST'].$tempValue.$combine);
-                die;
-            });
+        // Route::parse($url,\presty\Container::getInstance()->get("route"),
+        //     function($tempValue,$combine){
+        //         header("Location: ".$tempValue.$combine);
+        //     },
+        //     function ($tempValue,$combine){
+        //         header("Location: http://".$_SERVER['HTTP_HOST'].$tempValue.$combine);
+        //         die;
+        //     });
         $path = parse_url ($url);
         $info = array_filter (explode ("/", substr ($path['path'], 1)));
         isset($path['query']) ? $query = $path['query'] : $query = [];

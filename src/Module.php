@@ -41,6 +41,7 @@ class Module
                     $args = [$this->app];
                 }
                 $class = Container::getInstance ()->invokeClass($className);
+                $this->app->instance(get_class($class),$class);
                 $class->register(...$args);
             }
             else{
@@ -62,7 +63,10 @@ class Module
 
     public function callFunction ($moduleName,$functionName,$args = [],$classIndex = 0)
     {
-        $class = new $this->modules[$moduleName][$classIndex];
+        if($this->app->isInstanceExists($this->modules[$moduleName][$classIndex])){
+            $class = $this->app->make($this->modules[$moduleName][$classIndex]);
+        }
+        else $class = new $this->modules[$moduleName][$classIndex];
         if(method_exists ($class,$functionName))
         return call_user_func_array ([$class,$functionName],$args);
         else return false; //Exception

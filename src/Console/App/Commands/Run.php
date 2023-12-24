@@ -68,11 +68,11 @@ class Run extends Command
         $io->newLine();
         $io->success('Presty local web server is starting...');
         $debugMode = env("system.debug_mode",false) ? "<comment>Enable</comment>" : "<info>Unable</info>";
-        $databaseAutoLoad = \presty\Container::getInstance ()->make("config")->get("env.database_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $sessionAutoloada = \presty\Container::getInstance ()->make("config")->get("env.session_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $saveLogs = \presty\Container::getInstance ()->make("config")->get("env.save_running_log",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $xssProtect = \presty\Container::getInstance ()->make("config")->get("env.auto_xss_protect",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
-        $indexRoute = \presty\Container::getInstance ()->make("config")->get("env.use_system_index_route",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $databaseAutoLoad = \presty\Container::getInstance ()->makeAndSave("config")->get("env.database_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $sessionAutoloada = \presty\Container::getInstance ()->makeAndSave("config")->get("env.session_auto_load",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $saveLogs = \presty\Container::getInstance ()->makeAndSave("config")->get("env.save_running_log",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $xssProtect = \presty\Container::getInstance ()->makeAndSave("config")->get("env.auto_xss_protect",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
+        $indexRoute = \presty\Container::getInstance ()->makeAndSave("config")->get("env.use_system_index_route",false) ? "<info>Enable</info>" : "<comment>Unable</comment>";
         $output->writeln ("  _____               _         \r\n |  __ \             | |\r\n | |__) | __ ___  ___| |_ _   _ \r\n |  ___/ '__/ _ \/ __| __| | | |\r\n | |   | | |  __/\__ \ |_| |_| |\r\n |_|   |_|  \___||___/\__|\__, |\r\n                           __/ |\r\n                          |___/ \r\n");
         $output->writeln ("---------------------------------------------------------------");
         $output->writeln ("·PHP: v".PHP_VERSION."                       "."·Zend: v".zend_version ());

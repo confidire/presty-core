@@ -13,9 +13,26 @@
 
 
 namespace presty;
-use presty\Exception\RunTimeException;
+use presty\Container;
 
 class Route {
+
+    protected $route = [];
+
+    protected $request;
+
+    protected $cross = [];
+
+    function __construct() {
+        $this->app = Container::getInstance ();
+        $this->request = $this->app->get("request");
+        $this->route =array_merge( $this->route,file_get_contents($app->getAppPath().DIRECTORY_SEPARATOR."Route.php"));
+        var_dump($this->route);
+    }
+
+    public function rule() {
+
+    }
 
     // public function set ($alias,$origin = "",$method = "*") {
     //     if(!app()->has("route")) return false;
@@ -218,7 +235,7 @@ class Route {
     //     if(array_key_exists($path['path'],$route)){
     //         $key = $path['path'];
     //         $value = $route[$key];
-    //         if(app()->make("request")->method() == $value[0] || $value[0] == "*"){
+    //         if(app()->makeAndSave("request")->method() == $value[0] || $value[0] == "*"){
     //             if (filter_var($path, FILTER_VALIDATE_URL) !== false){
     //                 $urlMatchFunction($value[1],$args);
     //             }else{
@@ -249,7 +266,7 @@ class Route {
     //             $originRoute = "/".implode("/",$originRoute);
     //             $originValue = "/".implode("/",$originValue);
     //             if($originRoute == $key){
-    //                 if(app()->make("request")->method() == $value[0] || $value[0] == "*"){
+    //                 if(app()->makeAndSave("request")->method() == $value[0] || $value[0] == "*"){
     //                     if (filter_var($path, FILTER_VALIDATE_URL) !== false){
     //                         $urlMatchFunction($originValue,$args);
     //                     }else{

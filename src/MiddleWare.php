@@ -25,7 +25,7 @@ class MiddleWare
     protected $functionName = "";
 
     public function __construct ($app = "") {
-        if(is_object ($app)) if(!$app->get("middleWare")) $app->set("middleWare",require CONFIG . "MiddleWare.php");
+        if(is_object ($app)) if(!$app->get("middleWare")) $app->set("middleWareConfig",require CONFIG . "MiddleWare.php");
         \presty\Container::getInstance()->set ("hasBeenRun", "middleware", " - [".(new \DateTime())->format("Y-m-d H:i:s:u")."] => MiddleWare_Init");
     }
 
@@ -36,6 +36,7 @@ class MiddleWare
             $functionName = $this->functionName;
             $className = $this->className;
         }
+        $this->className = "";
         if (empty($className) && empty($functionName)) new InvalidArgumentException("函数transfer()至少需要提供2个非空参数，已提供1个","EC100007");
         if (empty($className) && !empty($functionName)) return false;
         if (count ($className) > 1) {
@@ -51,7 +52,7 @@ class MiddleWare
 
     public function getClassName ($middleWareName, $returnString = false,$middleWare = [])
     {
-        if(empty($middleWare)) $middleWare = Container::getInstance ()->get("middleWare",true);
+        if(empty($middleWare)) $middleWare = Container::getInstance ()->get("middleWareConfig",true);
         if (isset($middleWare[$middleWareName])) {
             if ($returnString) return $middleWare[$middleWareName];
             else {
